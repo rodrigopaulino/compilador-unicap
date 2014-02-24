@@ -10,11 +10,10 @@ import excecoes.ExcecaoCompilador;
 public final class Scanner {
 	private static Scanner aInstancia;
 	private int aColuna = 0;
-	private int aLinha = 1;
+	private int aLinha = 0;
 	private Token aUltimoTokenLido;
 	private Character aLookAhead;
 	private boolean aIsComentarioLinha = false;
-	private boolean aIsComentarioBloco = false;
 	private boolean aInFimArquivo = false;
 	
 	private static HashMap<String, Short> aPalavrasReservadas;
@@ -170,12 +169,18 @@ public final class Scanner {
 						while (true) {
 							this.lookAhead(pBuffReader);
 							
+							if (this.isFimArquivo())
+								throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Fim de arquivo antes de fim de comentario");
+							
 							if (this.aLookAhead == '*') {
 								this.lookAhead(pBuffReader);
 								
 								while (this.aLookAhead == '*') {
 									this.lookAhead(pBuffReader);
 								}
+								
+								if (this.isFimArquivo())
+									throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Fim de arquivo antes de fim de comentario");
 								
 								if (this.aLookAhead == '/') {
 									this.lookAhead(pBuffReader);
@@ -187,39 +192,42 @@ public final class Scanner {
 						return this.aUltimoTokenLido = new Token(Classificacao.DIVISAO);
 					}
 			default:
-				lexema += this.aLookAhead.toString();
-				
-				if (Character.isLetter(this.aLookAhead)) {
-					this.lookAhead(pBuffReader);
+				if (this.aLookAhead != null) {
+					lexema += this.aLookAhead.toString();
 					
-					while (Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) || this.aLookAhead == '_') {
-						lexema += this.aLookAhead.toString();
-						
+					if (Character.isLetter(this.aLookAhead)) {
 						this.lookAhead(pBuffReader);
-					}
-					
-					if (Scanner.aPalavrasReservadas.containsKey(lexema)) {
-						return this.aUltimoTokenLido = new Token(Scanner.aPalavrasReservadas.get(lexema), lexema);
+						
+						while (Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) || this.aLookAhead == '_') {
+							lexema += this.aLookAhead.toString();
+							
+							this.lookAhead(pBuffReader);
+						}
+						
+						if (Scanner.aPalavrasReservadas.containsKey(lexema)) {
+							return this.aUltimoTokenLido = new Token(Scanner.aPalavrasReservadas.get(lexema), lexema);
+						} else {
+							return this.aUltimoTokenLido = new Token(Classificacao.ID, lexema);
+						}
+					} else if (Character.isDigit(this.aLookAhead)) {
+						this.lookAhead(pBuffReader);
+						
+						while (Character.isDigit(this.aLookAhead)) {
+							lexema += this.aLookAhead.toString();
+							
+							this.lookAhead(pBuffReader);
+						}
+						
+						if (this.aLookAhead != '.') {
+							return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema);
+						}
 					} else {
-						return this.aUltimoTokenLido = new Token(Classificacao.ID, lexema);
-					}
-				} else if (Character.isDigit(this.aLookAhead)) {
-					this.lookAhead(pBuffReader);
-					
-					while (Character.isDigit(this.aLookAhead)) {
-						lexema += this.aLookAhead.toString();
-						
-						this.lookAhead(pBuffReader);
-					}
-					
-					if (this.aLookAhead != '.') {
-						return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema);
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Caracter Nao Reconhecido.");
 					}
 				} else {
-					throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Caracter Nao Reconhecido.");
+					this.lookAhead(pBuffReader);
 				}
 			}
-			
 		}
 		
 		return null;
