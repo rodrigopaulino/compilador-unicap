@@ -16,8 +16,8 @@ public class Token {
 		this.aClassificacao = new Classificacao(pClassificacao);
 	}
 	
-	public short getClassificacao() {
-		return this.aClassificacao.getClassificacao();
+	public Classificacao getClassificacao() {
+		return this.aClassificacao;
 	}
 	
 	public String getLexema() {
