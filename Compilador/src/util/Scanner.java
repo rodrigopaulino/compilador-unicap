@@ -12,7 +12,6 @@ public final class Scanner {
 	private int aColuna = 0;
 	private int aLinha = 1;
 	private Token aUltimoTokenLido;
-	private Character aLookAheadAnterior;
 	private Character aLookAhead;
 	private boolean aIsComentarioLinha = false;
 	private boolean aIsComentarioBloco = false;
@@ -46,217 +45,183 @@ public final class Scanner {
 		
 		while (!this.aInFimArquivo) {
 			switch (this.aLookAhead) {
-			case '\n':
-				break;
-			case '\t':
-				break;
-			case ' ':
-				break;
 			case '+':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.SOMA);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.SOMA);
 			case '-':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.SUBTRACAO);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.SUBTRACAO);
 			case '*':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.MULTIPLICACAO);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.MULTIPLICACAO);
 			case '(':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.PARENTESES_ABRE);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.PARENTESES_ABRE);
 			case ')':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.PARENTESES_FECHA);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.PARENTESES_FECHA);
 			case '{':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.CHAVE_ABRE);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.CHAVE_ABRE);
 			case '}':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.CHAVE_FECHA);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.CHAVE_FECHA);
 			case ',':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.VIRGULA);
-				
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.VIRGULA);
 			case ';':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco)
-					return this.aUltimoTokenLido = new Token(Classificacao.PONTO_VIRGULA);
-				
-				break;
-			case '<':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
-					this.lookAhead(pBuffReader);
-					
-					if (this.aLookAhead == '=')
-						return this.aUltimoTokenLido = new Token(Classificacao.MENOR_IGUAL);
-					else
-						return this.aUltimoTokenLido = new Token(Classificacao.MENOR);
-				}
-				break;
-			case '>':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
-					this.lookAhead(pBuffReader);
-					
-					if (this.aLookAhead == '=')
-						return this.aUltimoTokenLido = new Token(Classificacao.MAIOR_IGUAL);
-					else
-						return this.aUltimoTokenLido = new Token(Classificacao.MAIOR);
-				}
-				break;
-			case '=':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
-					this.lookAhead(pBuffReader);
-					
-					if (this.aLookAhead == '=')
-						return this.aUltimoTokenLido = new Token(Classificacao.IGUAL);
-					else
-						return this.aUltimoTokenLido = new Token(Classificacao.ATRIBUICAO);
-				}
-				break;
+				this.lookAhead(pBuffReader);
+				return this.aUltimoTokenLido = new Token(Classificacao.PONTO_VIRGULA);
 			case '!':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
-					this.lookAhead(pBuffReader);
+				this.lookAhead(pBuffReader);
 					
-					if (this.aLookAhead == '=')
-						return this.aUltimoTokenLido = new Token(Classificacao.DIFERENTE);
-					else
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Operador Relacional Invalido.");
-				}
-				break;
-			case '/':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
+				if (this.aLookAhead == '=') {
 					this.lookAhead(pBuffReader);
-					
-					if (this.aLookAhead == '/')
-						this.aIsComentarioLinha = true;
-					else if (this.aLookAhead == '*')
-						this.aIsComentarioBloco = true;
-					else
-						return this.aUltimoTokenLido = new Token(Classificacao.DIVISAO);
+					return this.aUltimoTokenLido = new Token(Classificacao.DIFERENTE);
+				} else {
+					throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Operador Relacional Invalido.");
 				}
-				break;
+			case '<':
+				this.lookAhead(pBuffReader);
+				
+				if (this.aLookAhead == '=') {
+					this.lookAhead(pBuffReader);
+					return this.aUltimoTokenLido = new Token(Classificacao.MENOR_IGUAL);
+				} else {
+					return this.aUltimoTokenLido = new Token(Classificacao.MENOR);
+				}
+			case '>':
+				this.lookAhead(pBuffReader);
+				
+				if (this.aLookAhead == '=') {
+					this.lookAhead(pBuffReader);
+					return this.aUltimoTokenLido = new Token(Classificacao.MAIOR_IGUAL);
+				} else {
+					return this.aUltimoTokenLido = new Token(Classificacao.MAIOR);
+				}
+			case '=':
+				this.lookAhead(pBuffReader);
+				
+				if (this.aLookAhead == '=') {
+					this.lookAhead(pBuffReader);
+					return this.aUltimoTokenLido = new Token(Classificacao.IGUAL);
+				} else {
+					return this.aUltimoTokenLido = new Token(Classificacao.ATRIBUICAO);
+				}
 			case '\'':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
+				lexema += this.aLookAhead.toString();
+				
+				this.lookAhead(pBuffReader);
+				
+				if (Character.isDigit(this.aLookAhead) || Character.isLetter(this.aLookAhead)) {
 					lexema += this.aLookAhead.toString();
 					
 					this.lookAhead(pBuffReader);
 					
-					if (Character.isDigit(this.aLookAhead) || Character.isLetter(this.aLookAhead)) {
+					if (this.aLookAhead == '\'') {
 						lexema += this.aLookAhead.toString();
 						
 						this.lookAhead(pBuffReader);
-						
-						if (this.aLookAhead == '\'') {
-							lexema += this.aLookAhead.toString();
-							
-							return this.aUltimoTokenLido = new Token(Classificacao.CARACTER, lexema);
-						} else {
-							throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Caracter Invalido.");
-						}
+						return this.aUltimoTokenLido = new Token(Classificacao.CARACTER, lexema);
 					} else {
 						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Caracter Invalido.");
 					}
+				} else {
+					throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Caracter Invalido.");
 				}
-				break;
 			case '.':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
+				lexema += this.aLookAhead.toString();
+				
+				this.lookAhead(pBuffReader);
+				
+				while (Character.isDigit(this.aLookAhead)) {
 					lexema += this.aLookAhead.toString();
 					
 					this.lookAhead(pBuffReader);
-					
-					while(Character.isDigit(this.aLookAhead)){
-						lexema += this.aLookAhead.toString();
-						
-						this.lookAhead(pBuffReader);
-					}
-					
-					if (lexema.charAt(lexema.length() - 1) == '.') {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Numero Decimal Invalido.");
-					} else {
-						return this.aUltimoTokenLido = new Token(Classificacao.REAL, lexema);
-					}
 				}
-				break;
+				
+				if (lexema.charAt(lexema.length() - 1) == '.') {
+					throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Numero Decimal Invalido.");
+				} else {
+					return this.aUltimoTokenLido = new Token(Classificacao.REAL, lexema);
+				}
 			case '_':
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
 					lexema += this.aLookAhead.toString();
 					
-					this.aColuna++;
 					this.lookAhead(pBuffReader);
 					
 					while (Character.isDigit(this.aLookAhead) || Character.isLetter(this.aLookAhead) || this.aLookAhead == '_') {
 						lexema += this.aLookAhead.toString();
 						
-						this.aColuna++;
 						this.lookAhead(pBuffReader);
 					}
 					
 					return this.aUltimoTokenLido = new Token(Classificacao.ID, lexema);
-				}
-				break;
-			default:
-				if (this.isFimArquivo())
-					break;
-				if (!this.aIsComentarioLinha && !this.aIsComentarioBloco) {
-					lexema += this.aLookAhead.toString();
+			case '/':
+					this.lookAhead(pBuffReader);
 					
-					if (Character.isLetter(this.aLookAhead)) {
-						this.aColuna++;
-						this.lookAhead(pBuffReader);
+					if (this.aLookAhead == '/') {
+						this.aIsComentarioLinha = true;
 						
-						while(Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) || this.aLookAhead == '_'){
-							lexema += this.aLookAhead.toString();
-							
-							this.aColuna++;
+						while (this.aIsComentarioLinha) {
 							this.lookAhead(pBuffReader);
 						}
-						
-						if (Scanner.aPalavrasReservadas.containsKey(lexema) && (this.aLookAhead == ' ' || this.aLookAhead == '+'
-								|| this.aLookAhead == '-' || this.aLookAhead == '*' || this.aLookAhead == '/'
-								|| this.aLookAhead == '=' || this.aLookAhead == ')' || this.aLookAhead == '('
-								|| this.aLookAhead == '{' || this.aLookAhead == '}' || this.aLookAhead == ','
-								|| this.aLookAhead == ';')) {
-							return this.aUltimoTokenLido = new Token(Scanner.aPalavrasReservadas.get(lexema), lexema);
-						} else if (Scanner.aPalavrasReservadas.containsKey(lexema)) {
-							throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Palavra Reservada Nao Delimitada Corretamente.");
-						} else {
-							return this.aUltimoTokenLido = new Token(Classificacao.ID, lexema);
-						}
-					} else if (Character.isDigit(this.aLookAhead)) {
-						this.aColuna++;
-						this.lookAhead(pBuffReader);
-						
-						while(Character.isDigit(this.aLookAhead)){
-							lexema += this.aLookAhead.toString();
-							
-							this.aColuna++;
+					} else if (this.aLookAhead == '*') {
+						while (true) {
 							this.lookAhead(pBuffReader);
-						}
-						
-						if (this.aLookAhead != '.') {
-							return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema);
+							
+							if (this.aLookAhead == '*') {
+								this.lookAhead(pBuffReader);
+								
+								while (this.aLookAhead == '*') {
+									this.lookAhead(pBuffReader);
+								}
+								
+								if (this.aLookAhead == '/') {
+									this.lookAhead(pBuffReader);
+									break;
+								}
+							}
 						}
 					} else {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Caracter Nao Reconhecido.");
+						return this.aUltimoTokenLido = new Token(Classificacao.DIVISAO);
 					}
+			default:
+				lexema += this.aLookAhead.toString();
+				
+				if (Character.isLetter(this.aLookAhead)) {
+					this.lookAhead(pBuffReader);
+					
+					while (Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) || this.aLookAhead == '_') {
+						lexema += this.aLookAhead.toString();
+						
+						this.lookAhead(pBuffReader);
+					}
+					
+					if (Scanner.aPalavrasReservadas.containsKey(lexema)) {
+						return this.aUltimoTokenLido = new Token(Scanner.aPalavrasReservadas.get(lexema), lexema);
+					} else {
+						return this.aUltimoTokenLido = new Token(Classificacao.ID, lexema);
+					}
+				} else if (Character.isDigit(this.aLookAhead)) {
+					this.lookAhead(pBuffReader);
+					
+					while (Character.isDigit(this.aLookAhead)) {
+						lexema += this.aLookAhead.toString();
+						
+						this.lookAhead(pBuffReader);
+					}
+					
+					if (this.aLookAhead != '.') {
+						return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema);
+					}
+				} else {
+					throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getClassificacao().getDescricao():"", "Caracter Nao Reconhecido.");
 				}
-				break;
 			}
+			
 		}
+		
 		return null;
 	}
 	
@@ -265,6 +230,7 @@ public final class Scanner {
 		
 		if (intChar == -1) {
 			this.aInFimArquivo = true;
+			return;
 		} else if (intChar == 13) {
 			intChar = pBuffReader.read();
 			
@@ -274,20 +240,23 @@ public final class Scanner {
 							, "CR-LF Invalido.");
 			}
 			
+			this.aIsComentarioLinha = false;
 			this.aColuna = 0;
 			this.aLinha++;
+			this.lookAhead(pBuffReader);
+			return;
 		} else if (intChar == 10) {
 			throw new ExcecaoCompilador(this.aLinha, this.aColuna
 					, (this.aUltimoTokenLido != null)?this.aUltimoTokenLido.getLexema():""
 						, "CR-LF Invalido.");
 		} else if (intChar == 9) {
 			this.aColuna = this.aColuna + 4;
+			this.lookAhead(pBuffReader);
+			return;
 		} else {
 			this.aColuna++;
+			this.aLookAhead = (char) intChar;
 		}
-		
-		this.aLookAheadAnterior = this.aLookAhead;
-		this.aLookAhead = (char) intChar;
 	}
 	
 	public boolean isFimArquivo() {
