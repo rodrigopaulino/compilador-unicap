@@ -23,9 +23,7 @@ public class Compilador {
 			buffReader = new BufferedReader(fReader);
 			
 			while (true) {
-				Scanner.getInstancia().executar(buffReader);
-				
-				if (Scanner.getInstancia().isFimArquivo()) {
+				if (Scanner.getInstancia().executar(buffReader) == null) {
 					break;
 				}
 			}
