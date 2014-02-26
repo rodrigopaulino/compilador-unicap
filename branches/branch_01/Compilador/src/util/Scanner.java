@@ -13,7 +13,6 @@ public final class Scanner {
 	private int aLinha = 0;
 	private Token aUltimoTokenLido;
 	private Character aLookAhead;
-	private boolean aIsComentarioLinha = false;
 	private boolean aInFimArquivo = false;
 	
 	private static HashMap<String, Short> aPalavrasReservadas;
@@ -172,9 +171,9 @@ public final class Scanner {
 				this.lookAhead(pBuffReader);
 				
 				if (this.aLookAhead == '/') {
-					this.aIsComentarioLinha = true;
+					this.lookAhead(pBuffReader);
 					
-					while (this.aIsComentarioLinha) {
+					while (this.aLookAhead != '\n') {
 						this.lookAhead(pBuffReader);
 					}
 				} else if (this.aLookAhead == '*') {
@@ -265,7 +264,6 @@ public final class Scanner {
 							, "CR-LF Invalido.");
 			}
 			
-			this.aIsComentarioLinha = false;
 			this.aColuna = 0;
 			this.aLinha++;
 		} else if (intChar == 10) {
