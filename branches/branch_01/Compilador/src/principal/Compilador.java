@@ -1,31 +1,43 @@
+/*
+ * Este arquivo é propriedade de Rodrigo Paulino Ferreira de Souza.
+ * Nenhuma informação nele contida pode ser reproduzida,
+ * mostrada ou revelada sem permissão escrita do mesmo.
+ */
 package principal;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import util.Scanner;
-import util.Token;
 import excecoes.ExcecaoClassificacaoInexistente;
 import excecoes.ExcecaoCompilador;
 
-public class Compilador {
+import util.Scanner;
+import util.Token;
 
-	/** 
+/**
+ * 
+ */
+public class Compilador {
+	//~ Metodos --------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * DOCUMENT ME!
+	 *
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		FileReader fReader;
 		BufferedReader buffReader;
 		Token teste;
-		
+
 		try {
-			fReader = new FileReader("teste.C");
+			fReader = new FileReader("ARQUIVOTESTE_WINDOWS.C");
 			buffReader = new BufferedReader(fReader);
-			
+
 			while (true) {
 				teste = Scanner.getInstancia().executar(buffReader);
-				
+
 				if (teste == null) {
 					break;
 				} else {
