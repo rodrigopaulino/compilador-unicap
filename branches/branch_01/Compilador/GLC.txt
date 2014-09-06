@@ -5,8 +5,14 @@
 <iteração> ::= while "("<expr_relacional>")" <comando> | do <comando> while "("<expr_relacional>")"";"
 <atribuição> ::= <id> "=" <expr_arit> ";"
 <expr_relacional> ::= <expr_arit> <op_relacional> <expr_arit>
-<expr_arit> ::= <expr_arit> "+" <termo>   | <expr_arit> "-" <termo> | <termo>
-<termo> ::= <termo> "*" <fator> | <termo> “/” <fator> | <fator>
+<expr_arit> ::= <termo> <expr_arit_aux>
+<expr_arit_aux> ::= "+" <termo> <expr_arit_aux> | "-" <termo> <expr_arit_aux> | &
+<termo> ::= <fator> <termo_aux>
+<termo_aux> ::= "+" <fator> <termo_aux> | "-" <fator> <termo_aux> | &
 <fator> ::= “(“ <expr_arit> “)” | <id> | <real> | <inteiro> | <char>
 <decl_var> ::= <tipo> <id> {,<id>}* ;
 <tipo> ::= int | float | char
+
+// Expressões com recursividade à esquerda.
+<expr_arit> ::= <expr_arit> "+" <termo>   | <expr_arit> "-" <termo> | <termo>
+<termo> ::= <termo> "*" <fator> | <termo> “/” <fator> | <fator>
