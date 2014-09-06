@@ -9,6 +9,10 @@ package excecoes;
  * 
  */
 public class ExcecaoCompilador extends Exception {
+	//~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
+
+	private static final long serialVersionUID = 2392227523068350450L;
+
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
 	private String aMessagem;

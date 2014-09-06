@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import excecoes.ExcecaoClassificacaoInexistente;
 import excecoes.ExcecaoCompilador;
 
 import util.Scanner;
@@ -41,12 +40,10 @@ public class Compilador {
 				if (teste == null) {
 					break;
 				} else {
-					System.out.println(teste.getClassificacao().getDescricao() + ", " + teste.getLexema());
+					//System.out.println(teste.getClassificacao().getDescricao() + ", " + teste.getLexema());
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ExcecaoClassificacaoInexistente e) {
 			e.printStackTrace();
 		} catch (ExcecaoCompilador e) {
 			e.printStackTrace();

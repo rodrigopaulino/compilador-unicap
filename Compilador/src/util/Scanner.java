@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 
-import excecoes.ExcecaoClassificacaoInexistente;
 import excecoes.ExcecaoCompilador;
 
 /**
@@ -70,10 +69,9 @@ public final class Scanner {
 	 * @return
 	 *
 	 * @throws IOException
-	 * @throws ExcecaoClassificacaoInexistente
 	 * @throws ExcecaoCompilador
 	 */
-	public Token executar(BufferedReader pBuffReader) throws IOException, ExcecaoClassificacaoInexistente, ExcecaoCompilador {
+	public Token executar(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		String lexema = "";
 
 		while (!this.aInFimArquivo) {
