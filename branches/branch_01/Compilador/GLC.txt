@@ -8,7 +8,7 @@
 <expr_arit> ::= <termo> <expr_arit_aux>
 <expr_arit_aux> ::= "+" <termo> <expr_arit_aux> | "-" <termo> <expr_arit_aux> | &
 <termo> ::= <fator> <termo_aux>
-<termo_aux> ::= "+" <fator> <termo_aux> | "-" <fator> <termo_aux> | &
+<termo_aux> ::= "*" <fator> <termo_aux> | "/" <fator> <termo_aux> | &
 <fator> ::= “(“ <expr_arit> “)” | <id> | <real> | <inteiro> | <char>
 <decl_var> ::= <tipo> <id> {,<id>}* ;
 <tipo> ::= int | float | char
