@@ -5,8 +5,6 @@
  */
 package util;
 
-import excecoes.ExcecaoClassificacaoInexistente;
-
 /**
  * 
  */
@@ -26,8 +24,7 @@ public class Token {
          *
          * @throws ExcecaoClassificacaoInexistente  
          */
-	public Token(short pClassificacao, String pLexema)
-		throws ExcecaoClassificacaoInexistente {
+	public Token(short pClassificacao, String pLexema) {
 		this.aClassificacao = new Classificacao(pClassificacao);
 		this.aLexema = pLexema;
 	}
@@ -39,7 +36,7 @@ public class Token {
          *
          * @throws ExcecaoClassificacaoInexistente  
          */
-	public Token(short pClassificacao) throws ExcecaoClassificacaoInexistente {
+	public Token(short pClassificacao) {
 		this.aClassificacao = new Classificacao(pClassificacao);
 	}
 

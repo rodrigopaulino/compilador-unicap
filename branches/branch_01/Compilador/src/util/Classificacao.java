@@ -5,8 +5,6 @@
  */
 package util;
 
-import excecoes.ExcecaoClassificacaoInexistente;
-
 /**
  * 
  */
@@ -176,7 +174,7 @@ public class Classificacao {
          *
          * @throws ExcecaoClassificacaoInexistente  
          */
-	public Classificacao(short pClassificacao) throws ExcecaoClassificacaoInexistente {
+	public Classificacao(short pClassificacao) {
 		if ((pClassificacao == Classificacao.ID) || (pClassificacao == Classificacao.INTEIRO) ||
 				(pClassificacao == Classificacao.REAL) || (pClassificacao == Classificacao.CARACTER) ||
 				(pClassificacao == Classificacao.MAIN) || (pClassificacao == Classificacao.IF) ||
@@ -193,8 +191,6 @@ public class Classificacao {
 				(pClassificacao == Classificacao.CHAVE_ABRE) || (pClassificacao == Classificacao.CHAVE_FECHA) ||
 				(pClassificacao == Classificacao.VIRGULA) || (pClassificacao == Classificacao.PONTO_VIRGULA)) {
 			this.aClassificacao = pClassificacao;
-		} else {
-			throw new ExcecaoClassificacaoInexistente();
 		}
 	}
 
