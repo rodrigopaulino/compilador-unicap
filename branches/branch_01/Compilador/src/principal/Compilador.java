@@ -11,8 +11,7 @@ import java.io.IOException;
 
 import excecoes.ExcecaoCompilador;
 
-import util.Scanner;
-import util.Token;
+import util.Parser;
 
 /**
  * 
@@ -28,20 +27,13 @@ public class Compilador {
 	public static void main(String[] args) {
 		FileReader fReader;
 		BufferedReader buffReader;
-		Token teste;
 
 		try {
 			fReader = new FileReader("ARQUIVOTESTE_WINDOWS.C");
 			buffReader = new BufferedReader(fReader);
 
 			while (true) {
-				teste = Scanner.getInstancia().executar(buffReader);
-
-				if (teste == null) {
-					break;
-				} else {
-					//System.out.println(teste.getClassificacao().getDescricao() + ", " + teste.getLexema());
-				}
+				Parser.getInstancia().executar(buffReader);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
