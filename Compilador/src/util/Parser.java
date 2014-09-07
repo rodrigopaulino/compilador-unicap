@@ -142,12 +142,8 @@ public final class Parser {
 	private boolean comando(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.comandoBasico(pBuffReader)) {
-			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 			return true;
 		} else if (this.iteracao(pBuffReader)) {
-			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 			return true;
 		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.IF) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
@@ -156,20 +152,14 @@ public final class Parser {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoRelacional(pBuffReader)) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (this.comando(pBuffReader)) {
-							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 							if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.ELSE) {
 								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 								if (this.comando(pBuffReader)) {
-									this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 									return true;
 								} else {
 									return false;
@@ -207,12 +197,8 @@ public final class Parser {
 	private boolean comandoBasico(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.atribuicao(pBuffReader)) {
-			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 			return true;
 		} else if (this.bloco(pBuffReader)) {
-			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 			return true;
 		} else {
 			return false;
@@ -238,14 +224,10 @@ public final class Parser {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoRelacional(pBuffReader)) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (this.comando(pBuffReader)) {
-							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 							return true;
 						} else {
 							return false;
@@ -263,8 +245,6 @@ public final class Parser {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if (this.comando(pBuffReader)) {
-				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.WHILE) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
@@ -272,8 +252,6 @@ public final class Parser {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (this.expressaoRelacional(pBuffReader)) {
-							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 							if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
 								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
@@ -323,8 +301,6 @@ public final class Parser {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoAritmetica(pBuffReader)) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PONTO_VIRGULA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
@@ -365,8 +341,6 @@ public final class Parser {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoAritmetica(pBuffReader)) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 					return true;
 				} else {
 					return false;
@@ -392,11 +366,7 @@ public final class Parser {
 	private boolean expressaoAritmetica(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.termo(pBuffReader)) {
-			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 			if (this.expressaoAritmeticaAuxiliar(pBuffReader)) {
-				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 				return true;
 			} else {
 				return false;
@@ -421,11 +391,7 @@ public final class Parser {
 		if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.SOMA) ||
 				(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.SUBTRACAO)) {
 			if (this.termo(pBuffReader)) {
-				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 				if (this.expressaoAritmeticaAuxiliar(pBuffReader)) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 					return true;
 				} else {
 					return false;
@@ -450,11 +416,7 @@ public final class Parser {
 	 */
 	private boolean termo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		if (this.fator(pBuffReader)) {
-			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 			if (this.termoAuxiliar(pBuffReader)) {
-				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 				return true;
 			} else {
 				return false;
@@ -479,11 +441,7 @@ public final class Parser {
 		if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MULTIPLICACAO) ||
 				(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.DIVISAO)) {
 			if (this.fator(pBuffReader)) {
-				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 				if (this.termoAuxiliar(pBuffReader)) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 					return true;
 				} else {
 					return false;
@@ -512,8 +470,6 @@ public final class Parser {
 
 			if (this.expressaoAritmetica(pBuffReader)) {
 				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
 					return true;
 				} else {
 					return false;
