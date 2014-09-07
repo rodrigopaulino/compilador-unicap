@@ -53,7 +53,8 @@ public final class Parser {
 		try {
 			this.programa(pBuffReader);
 		} catch (NullPointerException e) {
-			throw new ExcecaoCompilador(0, 0, null, "End of file!");
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), null,
+				"Fim de Arquivo Inesperado.");
 		}
 	}
 
@@ -81,19 +82,24 @@ public final class Parser {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (!this.bloco(pBuffReader)) {
-							throw new ExcecaoCompilador(0, 0, this.aLookAhead.getLexema(), "Erro do Parser");
+							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+								this.aLookAhead.getClassificacao().getDescricao(), "Erro de Sintaxe.");
 						}
 					} else {
-						throw new ExcecaoCompilador(0, 0, this.aLookAhead.getLexema(), "Erro do Parser");
+						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							this.aLookAhead.getClassificacao().getDescricao(), "Erro de Sintaxe.");
 					}
 				} else {
-					throw new ExcecaoCompilador(0, 0, this.aLookAhead.getLexema(), "Erro do Parser");
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						this.aLookAhead.getClassificacao().getDescricao(), "Erro de Sintaxe.");
 				}
 			} else {
-				throw new ExcecaoCompilador(0, 0, this.aLookAhead.getLexema(), "Erro do Parser");
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					this.aLookAhead.getClassificacao().getDescricao(), "Erro de Sintaxe.");
 			}
 		} else {
-			throw new ExcecaoCompilador(0, 0, this.aLookAhead.getLexema(), "Erro do Parser");
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+				this.aLookAhead.getClassificacao().getDescricao(), "Erro de Sintaxe.");
 		}
 	}
 
@@ -112,18 +118,22 @@ public final class Parser {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			while (this.declaracaoVariavel(pBuffReader)) {
+				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CHAVE_FECHA) {
+					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
+					return true;
+				}
 			}
 
 			while (this.comando(pBuffReader)) {
+				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CHAVE_FECHA) {
+					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
+					return true;
+				}
 			}
 
-			if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CHAVE_FECHA) {
-				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
-				return true;
-			} else {
-				return false;
-			}
+			return false;
 		} else {
 			return false;
 		}
