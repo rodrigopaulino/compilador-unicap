@@ -390,6 +390,8 @@ public final class Parser {
 		throws IOException, ExcecaoCompilador {
 		if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.SOMA) ||
 				(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.SUBTRACAO)) {
+			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
 			if (this.termo(pBuffReader)) {
 				if (this.expressaoAritmeticaAuxiliar(pBuffReader)) {
 					return true;
@@ -440,6 +442,8 @@ public final class Parser {
 		throws IOException, ExcecaoCompilador {
 		if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MULTIPLICACAO) ||
 				(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.DIVISAO)) {
+			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
 			if (this.fator(pBuffReader)) {
 				if (this.termoAuxiliar(pBuffReader)) {
 					return true;
@@ -470,6 +474,8 @@ public final class Parser {
 
 			if (this.expressaoAritmetica(pBuffReader)) {
 				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
+					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
 					return true;
 				} else {
 					return false;
