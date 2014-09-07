@@ -3,13 +3,9 @@
  * Nenhuma informação nele contida pode ser reproduzida,
  * mostrada ou revelada sem permissão escrita do mesmo.
  */
-
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
-
-import excecoes.ExcecaoCompilador;
 
 /**
  * 

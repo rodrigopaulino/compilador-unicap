@@ -3,12 +3,8 @@
  * Nenhuma informação nele contida pode ser reproduzida,
  * mostrada ou revelada sem permissão escrita do mesmo.
  */
-
-
 import java.io.BufferedReader;
 import java.io.IOException;
-
-import excecoes.ExcecaoCompilador;
 
 /**
  * 
@@ -59,7 +55,6 @@ public final class Parser {
 		} catch (NullPointerException e) {
 			throw new ExcecaoCompilador(0, 0, null, "End of file!");
 		}
-		
 	}
 
 	/**
