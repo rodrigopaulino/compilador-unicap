@@ -22,7 +22,7 @@ public final class Scanner {
 	private Token aUltimoTokenLido;
 	private boolean aInFimArquivo = false;
 	private int aColuna = 0;
-	private int aLinha = 0;
+	private int aLinha = 1;
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
@@ -43,6 +43,24 @@ public final class Scanner {
 	}
 
 	//~ Metodos --------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * -
+	 *
+	 * @return
+	 */
+	public int getColuna() {
+		return aColuna;
+	}
+
+	/**
+	 * -
+	 *
+	 * @return
+	 */
+	public int getLinha() {
+		return aLinha;
+	}
 
 	/**
 	 * -
@@ -185,12 +203,12 @@ public final class Scanner {
 						} else {
 							throw new ExcecaoCompilador(this.aLinha, this.aColuna,
 								(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-								"Caracter Invalido.");
+								"Token do Tipo Caracter Invalido.");
 						}
 					} else {
 						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
 							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-							"Token do tipo Caracter Invalido.");
+							"Token do Tipo Caracter Invalido.");
 					}
 
 				case '.':
@@ -239,7 +257,7 @@ public final class Scanner {
 							if (this.aInFimArquivo) {
 								throw new ExcecaoCompilador(this.aLinha, this.aColuna,
 									(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-									"Fim de arquivo antes de fim de comentario.");
+									"Fim de Arquivo Antes de Fim de Comentario.");
 							}
 
 							if (this.aLookAhead == '*') {
@@ -252,7 +270,7 @@ public final class Scanner {
 								if (this.aInFimArquivo) {
 									throw new ExcecaoCompilador(this.aLinha, this.aColuna,
 										(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-										"Fim de arquivo antes de fim de comentario.");
+										"Fim de Arquivo Antes de Fim de Comentario.");
 								}
 
 								if (this.aLookAhead == '/') {
@@ -286,7 +304,7 @@ public final class Scanner {
 						}
 
 						if (Scanner.aPalavrasReservadas.containsKey(lexema)) {
-							return this.aUltimoTokenLido = new Token(Scanner.aPalavrasReservadas.get(lexema), lexema);
+							return this.aUltimoTokenLido = new Token(Scanner.aPalavrasReservadas.get(lexema));
 						} else {
 							return this.aUltimoTokenLido = new Token(Classificacao.ID, lexema);
 						}
@@ -327,7 +345,7 @@ public final class Scanner {
 
 		if (intChar == -1) {
 			this.aInFimArquivo = true;
-		} else if (intChar == 13) {
+		} else if (intChar == 13) { // Para sistemas Windows onde a quebra de linha acontece com CR+LF
 			intChar = pBuffReader.read();
 
 			if (intChar != 10) {
@@ -338,9 +356,9 @@ public final class Scanner {
 
 			this.aColuna = 0;
 			this.aLinha++;
-		} else if (intChar == 10) {
-			throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-				(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "", "CR-LF Invalido.");
+		} else if (intChar == 10) { // Para sistemas LINUX onde a quebra de linha acontece só com LF
+			this.aColuna = 0;
+			this.aLinha++;
 		} else if (intChar == 9) {
 			this.aColuna = this.aColuna + 4;
 		} else {

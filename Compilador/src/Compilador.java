@@ -23,7 +23,7 @@ public class Compilador {
 		BufferedReader buffReader;
 
 		try {
-			fReader = new FileReader("ARQUIVOTESTE_WINDOWS.C");
+			fReader = new FileReader(args[0]);
 			buffReader = new BufferedReader(fReader);
 
 			Parser.getInstancia().executar(buffReader);
