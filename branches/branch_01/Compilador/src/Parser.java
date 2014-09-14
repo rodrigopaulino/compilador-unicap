@@ -81,7 +81,7 @@ public final class Parser {
 					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-						if (!this.bloco(pBuffReader)) {
+						if (!this.bloco(pBuffReader) || !Scanner.getInstancia().isFimArquivo()) {
 							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
 								this.aLookAhead.getClassificacao().getDescricao(), "Erro de Sintaxe.");
 						}
