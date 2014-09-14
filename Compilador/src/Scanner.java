@@ -334,6 +334,15 @@ public final class Scanner {
 	/**
 	 * -
 	 *
+	 * @return
+	 */
+	public boolean isFimArquivo() {
+		return aInFimArquivo;
+	}
+
+	/**
+	 * -
+	 *
 	 * @param pBuffReader
 	 *
 	 * @throws IOException
