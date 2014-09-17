@@ -1,7 +1,6 @@
 /*
- * Este arquivo é propriedade de Rodrigo Paulino Ferreira de Souza.
- * Nenhuma informação nele contida pode ser reproduzida,
- * mostrada ou revelada sem permissão escrita do mesmo.
+ * Este arquivo ï¿½ propriedade de Rodrigo Paulino Ferreira de Souza. Nenhuma informaï¿½ï¿½o nele contida pode ser reproduzida, mostrada ou
+ * revelada sem permissï¿½o escrita do mesmo.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,24 +10,41 @@ import java.util.HashMap;
  * 
  */
 public final class Scanner {
-	//~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
+
+	// ~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
 
 	private static Scanner aInstancia;
 	private static HashMap<String, Short> aPalavrasReservadas;
 
-	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
+	// ~ Atributos de instancia -----------------------------------------------------------------------------------------------------
+
+	/**
+	 * -
+	 * 
+	 * @return
+	 */
+	public static Scanner getInstancia() {
+		if (aInstancia == null) {
+			aInstancia = new Scanner();
+		}
+
+		return aInstancia;
+	}
 
 	private Character aLookAhead;
 	private Token aUltimoTokenLido;
 	private boolean aInFimArquivo = false;
 	private int aColuna = 0;
+
+	// ~ Construtores ---------------------------------------------------------------------------------------------------------------
+
 	private int aLinha = 1;
 
-	//~ Construtores ---------------------------------------------------------------------------------------------------------------
+	// ~ Metodos --------------------------------------------------------------------------------------------------------------------
 
-/**
-         * Cria um novo objeto Scanner.
-         */
+	/**
+	 * Cria um novo objeto Scanner.
+	 */
 	private Scanner() {
 		Scanner.aPalavrasReservadas = new HashMap<String, Short>();
 		Scanner.aPalavrasReservadas.put("main", Classificacao.MAIN);
@@ -42,46 +58,11 @@ public final class Scanner {
 		Scanner.aPalavrasReservadas.put("char", Classificacao.CHAR);
 	}
 
-	//~ Metodos --------------------------------------------------------------------------------------------------------------------
-
 	/**
 	 * -
-	 *
-	 * @return
-	 */
-	public int getColuna() {
-		return aColuna;
-	}
-
-	/**
-	 * -
-	 *
-	 * @return
-	 */
-	public int getLinha() {
-		return aLinha;
-	}
-
-	/**
-	 * -
-	 *
-	 * @return
-	 */
-	public static Scanner getInstancia() {
-		if (aInstancia == null) {
-			aInstancia = new Scanner();
-		}
-
-		return aInstancia;
-	}
-
-	/**
-	 * -
-	 *
+	 * 
 	 * @param pBuffReader
-	 *
 	 * @return
-	 *
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
@@ -147,9 +128,8 @@ public final class Scanner {
 
 						return this.aUltimoTokenLido = new Token(Classificacao.DIFERENTE);
 					} else {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-							"Operador Relacional Invalido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+								"Operador Relacional Invalido.");
 					}
 
 				case '<':
@@ -201,14 +181,12 @@ public final class Scanner {
 
 							return this.aUltimoTokenLido = new Token(Classificacao.CARACTER, lexema);
 						} else {
-							throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-								(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-								"Token do Tipo Caracter Invalido.");
+							throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema()
+									: "", "Token do Tipo Caracter Invalido.");
 						}
 					} else {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-							"Token do Tipo Caracter Invalido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+								"Token do Tipo Caracter Invalido.");
 					}
 
 				case '.':
@@ -222,9 +200,8 @@ public final class Scanner {
 					}
 
 					if (lexema.charAt(lexema.length() - 1) == '.') {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-							"Numero Decimal Invalido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+								"Numero Decimal Invalido.");
 					} else {
 						return this.aUltimoTokenLido = new Token(Classificacao.REAL, lexema);
 					}
@@ -254,11 +231,8 @@ public final class Scanner {
 						while (true) {
 							this.lookAhead(pBuffReader);
 
-							if (this.aInFimArquivo) {
-								throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-									(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-									"Fim de Arquivo Antes de Fim de Comentario.");
-							}
+							if (this.aInFimArquivo) { throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+									(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "", "Fim de Arquivo Antes de Fim de Comentario."); }
 
 							if (this.aLookAhead == '*') {
 								this.lookAhead(pBuffReader);
@@ -267,11 +241,9 @@ public final class Scanner {
 									this.lookAhead(pBuffReader);
 								}
 
-								if (this.aInFimArquivo) {
-									throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-										(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-										"Fim de Arquivo Antes de Fim de Comentario.");
-								}
+								if (this.aInFimArquivo) { throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+										(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+										"Fim de Arquivo Antes de Fim de Comentario."); }
 
 								if (this.aLookAhead == '/') {
 									this.lookAhead(pBuffReader);
@@ -296,8 +268,7 @@ public final class Scanner {
 					if (Character.isLetter(this.aLookAhead)) {
 						this.lookAhead(pBuffReader);
 
-						while (Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) ||
-								(this.aLookAhead == '_')) {
+						while (Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) || (this.aLookAhead == '_')) {
 							lexema += this.aLookAhead.toString();
 
 							this.lookAhead(pBuffReader);
@@ -317,13 +288,10 @@ public final class Scanner {
 							this.lookAhead(pBuffReader);
 						}
 
-						if (this.aLookAhead != '.') {
-							return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema);
-						}
+						if (this.aLookAhead != '.') { return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema); }
 					} else {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-							"Caracter Nao Reconhecido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+								"Caracter Nao Reconhecido.");
 					}
 			}
 		}
@@ -333,7 +301,25 @@ public final class Scanner {
 
 	/**
 	 * -
-	 *
+	 * 
+	 * @return
+	 */
+	public int getColuna() {
+		return aColuna;
+	}
+
+	/**
+	 * -
+	 * 
+	 * @return
+	 */
+	public int getLinha() {
+		return aLinha;
+	}
+
+	/**
+	 * -
+	 * 
 	 * @return
 	 */
 	public boolean isFimArquivo() {
@@ -342,14 +328,12 @@ public final class Scanner {
 
 	/**
 	 * -
-	 *
+	 * 
 	 * @param pBuffReader
-	 *
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private void lookAhead(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
+	private void lookAhead(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		int intChar = pBuffReader.read();
 
 		if (intChar == -1) {
@@ -357,15 +341,12 @@ public final class Scanner {
 		} else if (intChar == 13) { // Para sistemas Windows onde a quebra de linha acontece com CR+LF
 			intChar = pBuffReader.read();
 
-			if (intChar != 10) {
-				throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-					(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getClassificacao().getDescricao() : "",
-					"CR-LF Invalido.");
-			}
+			if (intChar != 10) { throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+					(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "", "CR-LF Invalido."); }
 
 			this.aColuna = 0;
 			this.aLinha++;
-		} else if (intChar == 10) { // Para sistemas LINUX onde a quebra de linha acontece só com LF
+		} else if (intChar == 10) { // Para sistemas LINUX onde a quebra de linha acontece sï¿½ com LF
 			this.aColuna = 0;
 			this.aLinha++;
 		} else if (intChar == 9) {
