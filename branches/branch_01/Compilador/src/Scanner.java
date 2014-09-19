@@ -49,6 +49,15 @@ public final class Scanner {
 	 *
 	 * @return
 	 */
+	public Token getUltimoTokenLido() {
+		return aUltimoTokenLido;
+	}
+
+	/**
+	 * -
+	 *
+	 * @return
+	 */
 	public int getColuna() {
 		return aColuna;
 	}

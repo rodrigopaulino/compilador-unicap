@@ -22,7 +22,7 @@ public final class Parser {
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
 /**
-         * Cria um novo objeto Scanner.
+         * Cria um novo objeto Parser.
          */
 	private Parser() {
 	}
@@ -54,7 +54,8 @@ public final class Parser {
 		try {
 			this.programa(pBuffReader);
 		} catch (NullPointerException e) {
-			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), null,
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+				(Scanner.getInstancia().getUltimoTokenLido() == null) ? "" : Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 				"Fim de Arquivo Inesperado.");
 		}
 	}
@@ -70,40 +71,45 @@ public final class Parser {
 	private void programa(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-		if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.INT) {
+		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INT) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MAIN) {
+			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIN) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_ABRE) {
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (!this.bloco(pBuffReader)) {
 							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-								this.aLookAhead.getLexema(), this.aMensagemErro);
+								Scanner.getInstancia().getUltimoTokenLido().getLexema(), this.aMensagemErro);
 						} else if (!Scanner.getInstancia().isFimArquivo()) {
 							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-								this.aLookAhead.getLexema(), "Programa finalizado antes do fim de arquivo.");
+								Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+								"Programa finalizado antes do fim de arquivo.");
 						}
 					} else {
 						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-							this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Fim de parenteses esperado.");
+							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+							"Inicio de programa invalido. " + "Fim de parenteses esperado.");
 					}
 				} else {
 					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-						this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Inicio de parenteses esperado.");
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Inicio de programa invalido. " + "Inicio de parenteses esperado.");
 				}
 			} else {
 				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-					this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Palavra 'main' esperada.");
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Inicio de programa invalido. " + "Palavra 'main' esperada.");
 			}
 		} else {
 			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-				this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Palavra 'int' esperada.");
+				Scanner.getInstancia().getUltimoTokenLido().getLexema(), "Inicio de programa invalido. " +
+				"Palavra 'int' esperada.");
 		}
 	}
 
@@ -118,11 +124,11 @@ public final class Parser {
 	 * @throws IOException
 	 */
 	private boolean bloco(BufferedReader pBuffReader) throws ExcecaoCompilador, IOException {
-		if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CHAVE_ABRE) {
+		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_ABRE) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			while (this.declaracaoVariavel(pBuffReader)) {
-				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CHAVE_FECHA) {
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_FECHA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
@@ -130,7 +136,7 @@ public final class Parser {
 			}
 
 			while (this.comando(pBuffReader)) {
-				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CHAVE_FECHA) {
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_FECHA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
@@ -163,18 +169,18 @@ public final class Parser {
 			return true;
 		} else if (this.iteracao(pBuffReader)) {
 			return true;
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.IF) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.IF) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_ABRE) {
+			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoRelacional(pBuffReader)) {
-					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (this.comando(pBuffReader)) {
-							if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.ELSE) {
+							if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ELSE) {
 								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 								if (this.comando(pBuffReader)) {
@@ -243,14 +249,14 @@ public final class Parser {
 	 */
 	private boolean iteracao(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.WHILE) {
+		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.WHILE) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_ABRE)) {
+			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoRelacional(pBuffReader)) {
-					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (this.comando(pBuffReader)) {
@@ -271,21 +277,21 @@ public final class Parser {
 
 				return false;
 			}
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.DO) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DO) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if (this.comando(pBuffReader)) {
-				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.WHILE) {
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.WHILE) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_ABRE) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						if (this.expressaoRelacional(pBuffReader)) {
-							if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
+							if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-								if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PONTO_VIRGULA) {
+								if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
 									this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 									return true;
@@ -334,14 +340,14 @@ public final class Parser {
 	 */
 	private boolean atribuicao(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.ID) {
+		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.ATRIBUICAO)) {
+			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ATRIBUICAO)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoAritmetica(pBuffReader)) {
-					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PONTO_VIRGULA) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 						return true;
@@ -378,12 +384,12 @@ public final class Parser {
 	private boolean expressaoRelacional(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.expressaoAritmetica(pBuffReader)) {
-			if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.IGUAL) ||
-					(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.DIFERENTE) ||
-					(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MAIOR) ||
-					(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MAIOR_IGUAL) ||
-					(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MENOR) ||
-					(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MENOR_IGUAL)) {
+			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.IGUAL) ||
+					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIFERENTE) ||
+					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR) ||
+					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR_IGUAL) ||
+					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR) ||
+					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR_IGUAL)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				if (this.expressaoAritmetica(pBuffReader)) {
@@ -437,8 +443,8 @@ public final class Parser {
 	 */
 	private boolean expressaoAritmeticaAuxiliar(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.SOMA) ||
-				(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.SUBTRACAO)) {
+		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SOMA) ||
+				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SUBTRACAO)) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if (this.termo(pBuffReader)) {
@@ -489,8 +495,8 @@ public final class Parser {
 	 */
 	private boolean termoAuxiliar(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		if ((this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.MULTIPLICACAO) ||
-				(this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.DIVISAO)) {
+		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MULTIPLICACAO) ||
+				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIVISAO)) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if (this.fator(pBuffReader)) {
@@ -518,11 +524,11 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean fator(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
-		if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_ABRE) {
+		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if (this.expressaoAritmetica(pBuffReader)) {
-				if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.PARENTESES_FECHA) {
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
@@ -534,19 +540,19 @@ public final class Parser {
 			} else {
 				return false;
 			}
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.ID) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.REAL) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.REAL) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.INTEIRO) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INTEIRO) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CARACTER) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CARACTER) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
@@ -571,13 +577,13 @@ public final class Parser {
 	private boolean declaracaoVariavel(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.tipo(pBuffReader)) {
-			if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.ID) {
+			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-				while (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.VIRGULA) {
+				while (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.VIRGULA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.ID) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 					} else {
 						this.aMensagemErro = "Declaracao de variavel invalida. " + "Identificador esperado.";
@@ -586,7 +592,7 @@ public final class Parser {
 					}
 				}
 
-				if (this.aLookAhead.getClassificacao().getClassificacao() != Classificacao.PONTO_VIRGULA) {
+				if (this.aLookAhead.getClassificacao().getCodigo() != Classificacao.PONTO_VIRGULA) {
 					this.aMensagemErro = "Declaracao de variavel invalida. " + "Ponto e virgula esperadas.";
 
 					return false;
@@ -615,15 +621,15 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean tipo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
-		if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.INT) {
+		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INT) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.FLOAT) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.FLOAT) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
-		} else if (this.aLookAhead.getClassificacao().getClassificacao() == Classificacao.CHAR) {
+		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAR) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;

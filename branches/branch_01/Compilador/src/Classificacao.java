@@ -161,34 +161,31 @@ public class Classificacao {
 
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
-	private short aClassificacao;
+	private short aCodigo;
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
 /**
          * Cria um novo objeto Classificacao.
          *
-         * @param pClassificacao  
+         * @param pCodigo  
          *
          * @throws ExcecaoClassificacaoInexistente  
          */
-	public Classificacao(short pClassificacao) {
-		if ((pClassificacao == Classificacao.ID) || (pClassificacao == Classificacao.INTEIRO) ||
-				(pClassificacao == Classificacao.REAL) || (pClassificacao == Classificacao.CARACTER) ||
-				(pClassificacao == Classificacao.MAIN) || (pClassificacao == Classificacao.IF) ||
-				(pClassificacao == Classificacao.ELSE) || (pClassificacao == Classificacao.WHILE) ||
-				(pClassificacao == Classificacao.DO) || (pClassificacao == Classificacao.FOR) ||
-				(pClassificacao == Classificacao.INT) || (pClassificacao == Classificacao.FLOAT) ||
-				(pClassificacao == Classificacao.CHAR) || (pClassificacao == Classificacao.MAIOR) ||
-				(pClassificacao == Classificacao.MENOR) || (pClassificacao == Classificacao.MAIOR_IGUAL) ||
-				(pClassificacao == Classificacao.MENOR_IGUAL) || (pClassificacao == Classificacao.IGUAL) ||
-				(pClassificacao == Classificacao.DIFERENTE) || (pClassificacao == Classificacao.SOMA) ||
-				(pClassificacao == Classificacao.SUBTRACAO) || (pClassificacao == Classificacao.MULTIPLICACAO) ||
-				(pClassificacao == Classificacao.DIVISAO) || (pClassificacao == Classificacao.ATRIBUICAO) ||
-				(pClassificacao == Classificacao.PARENTESES_ABRE) || (pClassificacao == Classificacao.PARENTESES_FECHA) ||
-				(pClassificacao == Classificacao.CHAVE_ABRE) || (pClassificacao == Classificacao.CHAVE_FECHA) ||
-				(pClassificacao == Classificacao.VIRGULA) || (pClassificacao == Classificacao.PONTO_VIRGULA)) {
-			this.aClassificacao = pClassificacao;
+	public Classificacao(short pCodigo) {
+		if ((pCodigo == Classificacao.ID) || (pCodigo == Classificacao.INTEIRO) || (pCodigo == Classificacao.REAL) ||
+				(pCodigo == Classificacao.CARACTER) || (pCodigo == Classificacao.MAIN) || (pCodigo == Classificacao.IF) ||
+				(pCodigo == Classificacao.ELSE) || (pCodigo == Classificacao.WHILE) || (pCodigo == Classificacao.DO) ||
+				(pCodigo == Classificacao.FOR) || (pCodigo == Classificacao.INT) || (pCodigo == Classificacao.FLOAT) ||
+				(pCodigo == Classificacao.CHAR) || (pCodigo == Classificacao.MAIOR) || (pCodigo == Classificacao.MENOR) ||
+				(pCodigo == Classificacao.MAIOR_IGUAL) || (pCodigo == Classificacao.MENOR_IGUAL) ||
+				(pCodigo == Classificacao.IGUAL) || (pCodigo == Classificacao.DIFERENTE) || (pCodigo == Classificacao.SOMA) ||
+				(pCodigo == Classificacao.SUBTRACAO) || (pCodigo == Classificacao.MULTIPLICACAO) ||
+				(pCodigo == Classificacao.DIVISAO) || (pCodigo == Classificacao.ATRIBUICAO) ||
+				(pCodigo == Classificacao.PARENTESES_ABRE) || (pCodigo == Classificacao.PARENTESES_FECHA) ||
+				(pCodigo == Classificacao.CHAVE_ABRE) || (pCodigo == Classificacao.CHAVE_FECHA) ||
+				(pCodigo == Classificacao.VIRGULA) || (pCodigo == Classificacao.PONTO_VIRGULA)) {
+			this.aCodigo = pCodigo;
 		}
 	}
 
@@ -199,8 +196,8 @@ public class Classificacao {
 	 *
 	 * @return
 	 */
-	public short getClassificacao() {
-		return this.aClassificacao;
+	public short getCodigo() {
+		return this.aCodigo;
 	}
 
 	/**
@@ -209,7 +206,7 @@ public class Classificacao {
 	 * @return
 	 */
 	public String getDescricao() {
-		switch (this.aClassificacao) {
+		switch (this.aCodigo) {
 			case Classificacao.ID:
 				return "IDENTIFICADOR";
 
