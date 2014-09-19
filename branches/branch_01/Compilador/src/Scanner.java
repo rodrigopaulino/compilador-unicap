@@ -49,6 +49,15 @@ public final class Scanner {
 	 *
 	 * @return
 	 */
+	public boolean isInFimArquivo() {
+		return aInFimArquivo;
+	}
+
+	/**
+	 * -
+	 *
+	 * @return
+	 */
 	public Token getUltimoTokenLido() {
 		return aUltimoTokenLido;
 	}
