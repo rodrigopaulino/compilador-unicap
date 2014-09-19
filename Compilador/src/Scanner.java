@@ -1,7 +1,7 @@
 /*
- * Este arquivo ï¿½ propriedade de Rodrigo Paulino Ferreira de Souza.
- * Nenhuma informaï¿½ï¿½o nele contida pode ser reproduzida,
- * mostrada ou revelada sem permissï¿½o escrita do mesmo.
+ * Este arquivo é propriedade de Rodrigo Paulino Ferreira de Souza.
+ * Nenhuma informação nele contida pode ser reproduzida,
+ * mostrada ou revelada sem permissão escrita do mesmo.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -147,8 +147,9 @@ public final class Scanner {
 
 						return this.aUltimoTokenLido = new Token(Classificacao.DIFERENTE);
 					} else {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
-								"Operador Relacional Invalido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+							"Operador Relacional Invalido.");
 					}
 
 				case '<':
@@ -200,12 +201,14 @@ public final class Scanner {
 
 							return this.aUltimoTokenLido = new Token(Classificacao.CARACTER, lexema);
 						} else {
-							throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema()
-									: "", "Token do Tipo Caracter Invalido.");
+							throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+								(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+								"Token do Tipo Caracter Invalido.");
 						}
 					} else {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
-								"Token do Tipo Caracter Invalido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+							"Token do Tipo Caracter Invalido.");
 					}
 
 				case '.':
@@ -219,8 +222,8 @@ public final class Scanner {
 					}
 
 					if (lexema.charAt(lexema.length() - 1) == '.') {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
-								"Numero Decimal Invalido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "", "Numero Decimal Invalido.");
 					} else {
 						return this.aUltimoTokenLido = new Token(Classificacao.REAL, lexema);
 					}
@@ -250,8 +253,11 @@ public final class Scanner {
 						while (true) {
 							this.lookAhead(pBuffReader);
 
-							if (this.aInFimArquivo) { throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-									(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "", "Fim de Arquivo Antes de Fim de Comentario."); }
+							if (this.aInFimArquivo) {
+								throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+									(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
+									"Fim de Arquivo Antes de Fim de Comentario.");
+							}
 
 							if (this.aLookAhead == '*') {
 								this.lookAhead(pBuffReader);
@@ -260,9 +266,11 @@ public final class Scanner {
 									this.lookAhead(pBuffReader);
 								}
 
-								if (this.aInFimArquivo) { throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+								if (this.aInFimArquivo) {
+									throw new ExcecaoCompilador(this.aLinha, this.aColuna,
 										(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
-										"Fim de Arquivo Antes de Fim de Comentario."); }
+										"Fim de Arquivo Antes de Fim de Comentario.");
+								}
 
 								if (this.aLookAhead == '/') {
 									this.lookAhead(pBuffReader);
@@ -312,8 +320,8 @@ public final class Scanner {
 							return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema);
 						}
 					} else {
-						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
-								"Caracter Nao Reconhecido.");
+						throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+							(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "", "Caracter Nao Reconhecido.");
 					}
 			}
 		}
@@ -347,12 +355,14 @@ public final class Scanner {
 		} else if (intChar == 13) { // Para sistemas Windows onde a quebra de linha acontece com CR+LF
 			intChar = pBuffReader.read();
 
-			if (intChar != 10) { throw new ExcecaoCompilador(this.aLinha, this.aColuna,
-					(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "", "CR-LF Invalido."); }
+			if (intChar != 10) {
+				throw new ExcecaoCompilador(this.aLinha, this.aColuna,
+					(this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "", "CR-LF Invalido.");
+			}
 
 			this.aColuna = 0;
 			this.aLinha++;
-		} else if (intChar == 10) { // Para sistemas LINUX onde a quebra de linha acontece sï¿½ com LF
+		} else if (intChar == 10) { // Para sistemas LINUX onde a quebra de linha acontece só com LF
 			this.aColuna = 0;
 			this.aLinha++;
 		} else if (intChar == 9) {

@@ -1,7 +1,7 @@
 /*
- * Este arquivo ï¿½ propriedade de Rodrigo Paulino Ferreira de Souza.
- * Nenhuma informaï¿½ï¿½o nele contida pode ser reproduzida,
- * mostrada ou revelada sem permissï¿½o escrita do mesmo.
+ * Este arquivo é propriedade de Rodrigo Paulino Ferreira de Souza.
+ * Nenhuma informação nele contida pode ser reproduzida,
+ * mostrada ou revelada sem permissão escrita do mesmo.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public final class Parser {
 		try {
 			this.programa(pBuffReader);
 		} catch (NullPointerException e) {
-			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), this.aLookAhead.getLexema(),
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), null,
 				"Fim de Arquivo Inesperado.");
 		}
 	}
@@ -84,24 +84,26 @@ public final class Parser {
 
 						if (!this.bloco(pBuffReader)) {
 							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-									this.aLookAhead.getLexema(), this.aMensagemErro);
-						} else if (!Scanner.getInstancia().isFimArquivo()) { throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner
-								.getInstancia().getColuna(), this.aLookAhead.getLexema(), "Programa finalizado antes do fim de arquivo."); }
+								this.aLookAhead.getLexema(), this.aMensagemErro);
+						} else if (!Scanner.getInstancia().isFimArquivo()) {
+							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+								this.aLookAhead.getLexema(), "Programa finalizado antes do fim de arquivo.");
+						}
 					} else {
-						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), this.aLookAhead.getLexema(),
-								"Inicio de programa invalido. " + "Fim de parenteses esperado.");
+						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Fim de parenteses esperado.");
 					}
 				} else {
-					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), this.aLookAhead.getLexema(),
-							"Inicio de programa invalido. " + "Inicio de parenteses esperado.");
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Inicio de parenteses esperado.");
 				}
 			} else {
-				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), this.aLookAhead.getLexema(),
-						"Inicio de programa invalido. " + "Palavra 'main' esperada.");
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Palavra 'main' esperada.");
 			}
 		} else {
-			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(), this.aLookAhead.getLexema(),
-					"Inicio de programa invalido. " + "Palavra 'int' esperada.");
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+				this.aLookAhead.getLexema(), "Inicio de programa invalido. " + "Palavra 'int' esperada.");
 		}
 	}
 
