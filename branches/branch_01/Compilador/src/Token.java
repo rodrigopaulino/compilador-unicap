@@ -1,25 +1,39 @@
 /*
- * Este arquivo � propriedade de Rodrigo Paulino Ferreira de Souza. Nenhuma informa��o nele contida pode ser reproduzida, mostrada ou
- * revelada sem permiss�o escrita do mesmo.
+ * Este arquivo � propriedade de Rodrigo Paulino Ferreira de Souza.
+ * Nenhuma informa��o nele contida pode ser reproduzida,
+ * mostrada ou revelada sem permiss�o escrita do mesmo.
  */
 /**
  * 
  */
 public class Token {
-
-	// ~ Atributos de instancia -----------------------------------------------------------------------------------------------------
+	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
 	private Classificacao aClassificacao;
 	private String aLexema;
 
-	// ~ Construtores ---------------------------------------------------------------------------------------------------------------
+	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
-	/**
-	 * Cria um novo objeto Token.
-	 * 
-	 * @param pClassificacao
-	 * @throws ExcecaoClassificacaoInexistente
-	 */
+/**
+         * Cria um novo objeto Token.
+         *
+         * @param pClassificacao  
+         * @param pLexema  
+         *
+         * @throws ExcecaoClassificacaoInexistente  
+         */
+	public Token(short pClassificacao, String pLexema) {
+		this.aClassificacao = new Classificacao(pClassificacao);
+		this.aLexema = pLexema;
+	}
+
+/**
+         * Cria um novo objeto Token.
+         *
+         * @param pClassificacao  
+         *
+         * @throws ExcecaoClassificacaoInexistente  
+         */
 	public Token(short pClassificacao) {
 		this.aClassificacao = new Classificacao(pClassificacao);
 		switch (pClassificacao) {
@@ -132,23 +146,11 @@ public class Token {
 		}
 	}
 
-	/**
-	 * Cria um novo objeto Token.
-	 * 
-	 * @param pClassificacao
-	 * @param pLexema
-	 * @throws ExcecaoClassificacaoInexistente
-	 */
-	public Token(short pClassificacao, String pLexema) {
-		this.aClassificacao = new Classificacao(pClassificacao);
-		this.aLexema = pLexema;
-	}
-
-	// ~ Metodos --------------------------------------------------------------------------------------------------------------------
+	//~ Metodos --------------------------------------------------------------------------------------------------------------------
 
 	/**
 	 * -
-	 * 
+	 *
 	 * @return
 	 */
 	public Classificacao getClassificacao() {
@@ -157,7 +159,7 @@ public class Token {
 
 	/**
 	 * -
-	 * 
+	 *
 	 * @return
 	 */
 	public String getLexema() {

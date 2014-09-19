@@ -1,6 +1,7 @@
 /*
- * Este arquivo � propriedade de Rodrigo Paulino Ferreira de Souza. Nenhuma informa��o nele contida pode ser reproduzida, mostrada ou
- * revelada sem permiss�o escrita do mesmo.
+ * Este arquivo � propriedade de Rodrigo Paulino Ferreira de Souza.
+ * Nenhuma informa��o nele contida pode ser reproduzida,
+ * mostrada ou revelada sem permiss�o escrita do mesmo.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,41 +11,24 @@ import java.util.HashMap;
  * 
  */
 public final class Scanner {
-
-	// ~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
+	//~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
 
 	private static Scanner aInstancia;
 	private static HashMap<String, Short> aPalavrasReservadas;
 
-	// ~ Atributos de instancia -----------------------------------------------------------------------------------------------------
-
-	/**
-	 * -
-	 * 
-	 * @return
-	 */
-	public static Scanner getInstancia() {
-		if (aInstancia == null) {
-			aInstancia = new Scanner();
-		}
-
-		return aInstancia;
-	}
+	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
 	private Character aLookAhead;
 	private Token aUltimoTokenLido;
 	private boolean aInFimArquivo = false;
 	private int aColuna = 0;
-
-	// ~ Construtores ---------------------------------------------------------------------------------------------------------------
-
 	private int aLinha = 1;
 
-	// ~ Metodos --------------------------------------------------------------------------------------------------------------------
+	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
-	/**
-	 * Cria um novo objeto Scanner.
-	 */
+/**
+         * Cria um novo objeto Scanner.
+         */
 	private Scanner() {
 		Scanner.aPalavrasReservadas = new HashMap<String, Short>();
 		Scanner.aPalavrasReservadas.put("main", Classificacao.MAIN);
@@ -58,11 +42,46 @@ public final class Scanner {
 		Scanner.aPalavrasReservadas.put("char", Classificacao.CHAR);
 	}
 
+	//~ Metodos --------------------------------------------------------------------------------------------------------------------
+
 	/**
 	 * -
-	 * 
-	 * @param pBuffReader
+	 *
 	 * @return
+	 */
+	public int getColuna() {
+		return aColuna;
+	}
+
+	/**
+	 * -
+	 *
+	 * @return
+	 */
+	public int getLinha() {
+		return aLinha;
+	}
+
+	/**
+	 * -
+	 *
+	 * @return
+	 */
+	public static Scanner getInstancia() {
+		if (aInstancia == null) {
+			aInstancia = new Scanner();
+		}
+
+		return aInstancia;
+	}
+
+	/**
+	 * -
+	 *
+	 * @param pBuffReader
+	 *
+	 * @return
+	 *
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
@@ -268,7 +287,8 @@ public final class Scanner {
 					if (Character.isLetter(this.aLookAhead)) {
 						this.lookAhead(pBuffReader);
 
-						while (Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) || (this.aLookAhead == '_')) {
+						while (Character.isLetter(this.aLookAhead) || Character.isDigit(this.aLookAhead) ||
+								(this.aLookAhead == '_')) {
 							lexema += this.aLookAhead.toString();
 
 							this.lookAhead(pBuffReader);
@@ -288,7 +308,9 @@ public final class Scanner {
 							this.lookAhead(pBuffReader);
 						}
 
-						if (this.aLookAhead != '.') { return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema); }
+						if (this.aLookAhead != '.') {
+							return this.aUltimoTokenLido = new Token(Classificacao.INTEIRO, lexema);
+						}
 					} else {
 						throw new ExcecaoCompilador(this.aLinha, this.aColuna, (this.aUltimoTokenLido != null) ? this.aUltimoTokenLido.getLexema() : "",
 								"Caracter Nao Reconhecido.");
@@ -301,25 +323,7 @@ public final class Scanner {
 
 	/**
 	 * -
-	 * 
-	 * @return
-	 */
-	public int getColuna() {
-		return aColuna;
-	}
-
-	/**
-	 * -
-	 * 
-	 * @return
-	 */
-	public int getLinha() {
-		return aLinha;
-	}
-
-	/**
-	 * -
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isFimArquivo() {
@@ -328,12 +332,14 @@ public final class Scanner {
 
 	/**
 	 * -
-	 * 
+	 *
 	 * @param pBuffReader
+	 *
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private void lookAhead(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+	private void lookAhead(BufferedReader pBuffReader)
+		throws IOException, ExcecaoCompilador {
 		int intChar = pBuffReader.read();
 
 		if (intChar == -1) {
