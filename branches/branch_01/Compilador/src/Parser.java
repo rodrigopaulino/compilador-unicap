@@ -16,7 +16,7 @@ public final class Parser {
 
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
-	private String aMensagemErro;
+	private String aMensagemErro = "";
 	private Token aLookAhead;
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
@@ -143,11 +143,11 @@ public final class Parser {
 				}
 			}
 
-			this.aMensagemErro = "Bloco invalido. " + "Bloco nao fechado ou mal formado.";
+			atualizarMensagemErro("Bloco invalido. " + "Bloco nao fechado ou mal formado.");
 
 			return false;
 		} else {
-			this.aMensagemErro = "Bloco invalido. " + "Inicio de chaves esperado.";
+			atualizarMensagemErro("Bloco invalido. " + "Inicio de chaves esperado.");
 
 			return false;
 		}
@@ -189,7 +189,7 @@ public final class Parser {
 									return false;
 								}
 							} else {
-								this.aMensagemErro = "Comando invalido. " + "Palavra else esperada.";
+								atualizarMensagemErro("Comando invalido. " + "Palavra else esperada.");
 
 								return true;
 							}
@@ -197,7 +197,7 @@ public final class Parser {
 							return false;
 						}
 					} else {
-						this.aMensagemErro = "Comando invalido. " + "Fim de parenteses esperado.";
+						atualizarMensagemErro("Comando invalido. " + "Fim de parenteses esperado.");
 
 						return false;
 					}
@@ -205,12 +205,12 @@ public final class Parser {
 					return false;
 				}
 			} else {
-				this.aMensagemErro = "Comando invalido. " + "Inicio de parenteses esperado.";
+				atualizarMensagemErro("Comando invalido. " + "Inicio de parenteses esperado.");
 
 				return false;
 			}
 		} else {
-			this.aMensagemErro = "Comando invalido. " + "Palavra if, ou comando, ou iteracao esperadas.";
+			atualizarMensagemErro("Comando invalido. " + "Palavra if, ou comando, ou iteracao esperadas.");
 
 			return false;
 		}
@@ -265,7 +265,7 @@ public final class Parser {
 							return false;
 						}
 					} else {
-						this.aMensagemErro = "Iteracao invalida. " + "Fim de parenteses esperado.";
+						atualizarMensagemErro("Iteracao invalida. " + "Fim de parenteses esperado.");
 
 						return false;
 					}
@@ -273,7 +273,7 @@ public final class Parser {
 					return false;
 				}
 			} else {
-				this.aMensagemErro = "Iteracao invalida. " + "Inicio de parenteses esperado.";
+				atualizarMensagemErro("Iteracao invalida. " + "Inicio de parenteses esperado.");
 
 				return false;
 			}
@@ -296,12 +296,12 @@ public final class Parser {
 
 									return true;
 								} else {
-									this.aMensagemErro = "Iteracao invalida. " + "Ponto e virgula esperadas.";
+									atualizarMensagemErro("Iteracao invalida. " + "Ponto e virgula esperadas.");
 
 									return false;
 								}
 							} else {
-								this.aMensagemErro = "Iteracao invalida. " + "Fim de parenteses esperado.";
+								atualizarMensagemErro("Iteracao invalida. " + "Fim de parenteses esperado.");
 
 								return false;
 							}
@@ -309,12 +309,12 @@ public final class Parser {
 							return false;
 						}
 					} else {
-						this.aMensagemErro = "Iteracao invalida. " + "Inicio de parenteses esperado.";
+						atualizarMensagemErro("Iteracao invalida. " + "Inicio de parenteses esperado.");
 
 						return false;
 					}
 				} else {
-					this.aMensagemErro = "Iteracao invalida. " + "Palavra while esperada.";
+					atualizarMensagemErro("Iteracao invalida. " + "Palavra while esperada.");
 
 					return false;
 				}
@@ -322,7 +322,7 @@ public final class Parser {
 				return false;
 			}
 		} else {
-			this.aMensagemErro = "Iteracao invalida. " + "Palavra do/while esperada.";
+			atualizarMensagemErro("Iteracao invalida. " + "Palavra do/while esperada.");
 
 			return false;
 		}
@@ -352,7 +352,7 @@ public final class Parser {
 
 						return true;
 					} else {
-						this.aMensagemErro = "Atribuicao invalida. " + "Ponto e virgula esperadas.";
+						atualizarMensagemErro("Atribuicao invalida. " + "Ponto e virgula esperadas.");
 
 						return false;
 					}
@@ -360,12 +360,12 @@ public final class Parser {
 					return false;
 				}
 			} else {
-				this.aMensagemErro = "Atribuicao invalida. " + "Sinal \"=\" esperado.";
+				atualizarMensagemErro("Atribuicao invalida. " + "Sinal \"=\" esperado.");
 
 				return false;
 			}
 		} else {
-			this.aMensagemErro = "Atribuicao invalida. " + "Identificador esperado.";
+			atualizarMensagemErro("Atribuicao invalida. " + "Identificador esperado.");
 
 			return false;
 		}
@@ -398,8 +398,8 @@ public final class Parser {
 					return false;
 				}
 			} else {
-				this.aMensagemErro = "Expressao relacional invalida. " +
-					"Um dos seguintes operadores esperado: =, !=, >, >=, <, <=.";
+				atualizarMensagemErro("Expressao relacional invalida. " +
+					"Um dos seguintes operadores esperado: =, !=, >, >=, <, <=.");
 
 				return false;
 			}
@@ -533,7 +533,7 @@ public final class Parser {
 
 					return true;
 				} else {
-					this.aMensagemErro = "Fator invalido. " + "Fim de parenteses esperado.";
+					atualizarMensagemErro("Fator invalido. " + "Fim de parenteses esperado.");
 
 					return false;
 				}
@@ -557,8 +557,8 @@ public final class Parser {
 
 			return true;
 		} else {
-			this.aMensagemErro = "Fator invalido. " +
-				"Identificador, ou real, ou inteiro, caracter, ou expressao aritmetica dentre parenteses esperado.";
+			atualizarMensagemErro("Fator invalido. " +
+				"Identificador, ou real, ou inteiro, caracter, ou expressao aritmetica dentre parenteses esperado.");
 
 			return false;
 		}
@@ -586,14 +586,14 @@ public final class Parser {
 					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 					} else {
-						this.aMensagemErro = "Declaracao de variavel invalida. " + "Identificador esperado.";
+						atualizarMensagemErro("Declaracao de variavel invalida. " + "Identificador esperado.");
 
 						return false;
 					}
 				}
 
 				if (this.aLookAhead.getClassificacao().getCodigo() != Classificacao.PONTO_VIRGULA) {
-					this.aMensagemErro = "Declaracao de variavel invalida. " + "Ponto e virgula esperadas.";
+					atualizarMensagemErro("Declaracao de variavel invalida. " + "Ponto e virgula esperadas.");
 
 					return false;
 				}
@@ -601,7 +601,7 @@ public final class Parser {
 
 				return true;
 			} else {
-				this.aMensagemErro = "Declaracao de variavel invalida. " + "Identificador esperado.";
+				atualizarMensagemErro("Declaracao de variavel invalida. " + "Identificador esperado.");
 
 				return false;
 			}
@@ -634,9 +634,20 @@ public final class Parser {
 
 			return true;
 		} else {
-			this.aMensagemErro = "Tipo invalido. " + "Tipos permitidos: int, float e char.";
+			atualizarMensagemErro("Tipo invalido. " + "Tipos permitidos: int, float e char.");
 
 			return false;
+		}
+	}
+
+	/**
+	 * - Atualiza a mensagem de erro caso seja o primeiro erro encontrado.
+	 *
+	 * @param pMensagem
+	 */
+	private void atualizarMensagemErro(String pMensagem) {
+		if (this.aMensagemErro.equals("")) {
+			this.aMensagemErro = pMensagem;
 		}
 	}
 }
