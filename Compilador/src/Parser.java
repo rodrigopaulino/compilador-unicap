@@ -5,7 +5,6 @@
  */
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Stack;
 
 /**
@@ -19,10 +18,10 @@ public final class Parser {
 
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
+	private Stack<Token> aTabelaSimbolos = new Stack<Token>();
 	private String aMensagemErro = "";
 	private Token aLookAhead;
 	private Token aTokenPreInclusaoTabela;
-	private Stack<Token> aTabelaSimbolos = new Stack<Token>(); 
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
@@ -58,7 +57,6 @@ public final class Parser {
 	public void executar(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		try {
 			this.programa(pBuffReader);
-			System.out.print(true);
 		} catch (NullPointerException e) {
 			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
 				(Scanner.getInstancia().getUltimoTokenLido() == null) ? "" : Scanner.getInstancia().getUltimoTokenLido().getLexema(),
@@ -118,19 +116,26 @@ public final class Parser {
 				"Palavra 'int' esperada.");
 		}
 	}
-	
-	private void iniciarBloco(){
+
+	/**
+	 * -
+	 */
+	private void iniciarBloco() {
 		Token inicioBloco = new Token(Parser.NOVO_ESCOPO);
 		this.aTabelaSimbolos.push(inicioBloco);
 	}
 
-	private void retirarBloco(){
+	/**
+	 * -
+	 */
+	private void retirarBloco() {
 		Token token = this.aTabelaSimbolos.pop();
-		while(token.getLexema() != null){
+
+		while (token.getLexema() != null) {
 			token = this.aTabelaSimbolos.pop();
 		}
 	}
-	
+
 	/**
 	 * -
 	 *
@@ -363,13 +368,13 @@ public final class Parser {
 		throws IOException, ExcecaoCompilador {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 			Token variavelDeclarada = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
-			
+
 			if (variavelDeclarada == null) {
 				atualizarMensagemErro("A variavel nao foi declarada.");
 
 				return false;
 			}
-			
+
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ATRIBUICAO)) {
@@ -571,13 +576,13 @@ public final class Parser {
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 			Token variavelDeclarada = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
-			
+
 			if (variavelDeclarada == null) {
 				atualizarMensagemErro("A variavel nao foi declarada.");
 
 				return false;
 			}
-			
+
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
@@ -614,16 +619,15 @@ public final class Parser {
 	private boolean declaracaoVariavel(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.tipo(pBuffReader)) {
-			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID 
-					&& this.incluirVariavel(this.aLookAhead.getLexema())) {
+			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) &&
+					this.incluirVariavel(this.aLookAhead.getLexema())) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				while (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.VIRGULA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID 
-							&& this.incluirVariavel(this.aLookAhead.getLexema())) {
-						
+					if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) &&
+							this.incluirVariavel(this.aLookAhead.getLexema())) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 					} else {
 						zerarTokenPreInclusao();
@@ -653,42 +657,66 @@ public final class Parser {
 			return false;
 		}
 	}
-	
-	private boolean incluirVariavel(String pIdentificador){
+
+	/**
+	 * -
+	 *
+	 * @param pIdentificador
+	 *
+	 * @return
+	 */
+	private boolean incluirVariavel(String pIdentificador) {
 		Token variavelDeclarada = this.variavelDeclarada(pIdentificador, true);
+
 		if (variavelDeclarada == null) {
 			variavelDeclarada = new Token(this.aTokenPreInclusaoTabela.getClassificacao().getCodigo(), pIdentificador);
 			this.aTabelaSimbolos.push(variavelDeclarada);
-			
+
 			return true;
 		} else {
 			atualizarMensagemErro("Variavel ja declarada neste escopo.");
-			
+
 			return false;
 		}
 	}
-	
-	private Token variavelDeclarada(String pIdentificador, boolean pBuscarNoProprioEscopo){
+
+	/**
+	 * -
+	 *
+	 * @param pIdentificador
+	 * @param pBuscarNoProprioEscopo
+	 *
+	 * @return
+	 */
+	private Token variavelDeclarada(String pIdentificador, boolean pBuscarNoProprioEscopo) {
 		for (int i = this.aTabelaSimbolos.size() - 1; i >= 0; --i) {
 			Token token = this.aTabelaSimbolos.get(i);
-			
-			if (pBuscarNoProprioEscopo && token.getLexema() == null) {
+
+			if (pBuscarNoProprioEscopo && (token.getLexema() == null)) {
 				break;
 			}
-			
+
 			if (pIdentificador.equals(token.getLexema())) {
 				return token;
 			}
 		}
-		
+
 		return null;
 	}
-	
-	private void zerarTokenPreInclusao(){
+
+	/**
+	 * -
+	 */
+	private void zerarTokenPreInclusao() {
 		this.aTokenPreInclusaoTabela = null;
 	}
-	
-	private void iniciarTokenPreInclusao(short pTipo){
+
+	/**
+	 * -
+	 *
+	 * @param pTipo
+	 */
+	private void iniciarTokenPreInclusao(short pTipo) {
 		this.aTokenPreInclusaoTabela = new Token(pTipo);
 	}
 
@@ -735,7 +763,10 @@ public final class Parser {
 			this.aMensagemErro = pMensagem;
 		}
 	}
-	
+
+	/**
+	 * -
+	 */
 	private void zerarMensagemErro() {
 		this.aMensagemErro = "";
 	}

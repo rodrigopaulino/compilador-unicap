@@ -30,7 +30,7 @@ public class Compilador {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ExcecaoCompilador e) {
-			e.printStackTrace();
+			System.out.print(e.getMessage());
 		}
 	}
 }
