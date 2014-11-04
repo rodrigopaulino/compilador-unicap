@@ -5,6 +5,7 @@
  */
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Stack;
 
 /**
  * 
@@ -13,11 +14,14 @@ public final class Parser {
 	//~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
 
 	private static Parser aInstancia;
+	private static final short NOVO_ESCOPO = -1;
 
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
 	private String aMensagemErro = "";
 	private Token aLookAhead;
+	private Token aTokenPreInclusaoTabela;
+	private Stack<Token> aTabelaSimbolos = new Stack<Token>(); 
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
@@ -53,6 +57,7 @@ public final class Parser {
 	public void executar(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		try {
 			this.programa(pBuffReader);
+			System.out.print(true);
 		} catch (NullPointerException e) {
 			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
 				(Scanner.getInstancia().getUltimoTokenLido() == null) ? "" : Scanner.getInstancia().getUltimoTokenLido().getLexema(),
@@ -112,6 +117,11 @@ public final class Parser {
 				"Palavra 'int' esperada.");
 		}
 	}
+	
+	public void iniciarBloco(){
+		Token inicioBloco = new Token(Parser.NOVO_ESCOPO);
+		this.aTabelaSimbolos.push(inicioBloco);
+	}
 
 	/**
 	 * -
@@ -125,6 +135,7 @@ public final class Parser {
 	 */
 	private boolean bloco(BufferedReader pBuffReader) throws ExcecaoCompilador, IOException {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_ABRE) {
+			this.iniciarBloco();
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			while (this.declaracaoVariavel(pBuffReader)) {
@@ -577,15 +588,19 @@ public final class Parser {
 	private boolean declaracaoVariavel(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.tipo(pBuffReader)) {
-			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
+			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID 
+					&& this.incluirVariavel(this.aLookAhead.getLexema())) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				while (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.VIRGULA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID 
+							&& this.incluirVariavel(this.aLookAhead.getLexema())) {
+						
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 					} else {
+						zerarTokenPreInclusao();
 						atualizarMensagemErro("Declaracao de variavel invalida. " + "Identificador esperado.");
 
 						return false;
@@ -593,14 +608,17 @@ public final class Parser {
 				}
 
 				if (this.aLookAhead.getClassificacao().getCodigo() != Classificacao.PONTO_VIRGULA) {
+					zerarTokenPreInclusao();
 					atualizarMensagemErro("Declaracao de variavel invalida. " + "Ponto e virgula esperadas.");
 
 					return false;
 				}
+				zerarTokenPreInclusao();
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				return true;
 			} else {
+				zerarTokenPreInclusao();
 				atualizarMensagemErro("Declaracao de variavel invalida. " + "Identificador esperado.");
 
 				return false;
@@ -608,6 +626,30 @@ public final class Parser {
 		} else {
 			return false;
 		}
+	}
+	
+	private boolean incluirVariavel(String pIdentificador){
+		boolean retorno = isVariavelUnica(pIdentificador);
+		if (retorno) {
+			Token variavelDeclarada = new Token(this.aTokenPreInclusaoTabela.getClassificacao().getCodigo(), pIdentificador);
+			this.aTabelaSimbolos.push(variavelDeclarada);
+		} else {
+			atualizarMensagemErro("Variavel ja declarada neste escopo.");
+		}
+		
+		return retorno;	
+	}
+	
+	private boolean isVariavelUnica(String pIdentificador){
+		return true;
+	}
+	
+	private void zerarTokenPreInclusao(){
+		this.aTokenPreInclusaoTabela = null;
+	}
+	
+	private void iniciarTokenPreInclusao(short pTipo){
+		this.aTokenPreInclusaoTabela = new Token(Classificacao.INT);
 	}
 
 	/**
@@ -622,14 +664,17 @@ public final class Parser {
 	 */
 	private boolean tipo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INT) {
+			 iniciarTokenPreInclusao(Classificacao.INT);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.FLOAT) {
+			 iniciarTokenPreInclusao(Classificacao.FLOAT);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAR) {
+			 iniciarTokenPreInclusao(Classificacao.CHAR);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
