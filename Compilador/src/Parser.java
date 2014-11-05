@@ -1,7 +1,7 @@
 /*
- * Este arquivo é propriedade de Rodrigo Paulino Ferreira de Souza.
- * Nenhuma informação nele contida pode ser reproduzida,
- * mostrada ou revelada sem permissão escrita do mesmo.
+ * Este arquivo ï¿½ propriedade de Rodrigo Paulino Ferreira de Souza.
+ * Nenhuma informaï¿½ï¿½o nele contida pode ser reproduzida,
+ * mostrada ou revelada sem permissï¿½o escrita do mesmo.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +14,7 @@ public final class Parser {
 	//~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
 
 	private static Parser aInstancia;
-	private static final short NOVO_ESCOPO = -1;
+	private static final short TOKEN_VAZIO = -1;
 
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
@@ -121,7 +121,7 @@ public final class Parser {
 	 * -
 	 */
 	private void iniciarBloco() {
-		Token inicioBloco = new Token(Parser.NOVO_ESCOPO);
+		Token inicioBloco = new Token(Parser.TOKEN_VAZIO);
 		this.aTabelaSimbolos.push(inicioBloco);
 	}
 
@@ -380,11 +380,17 @@ public final class Parser {
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ATRIBUICAO)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-				if (this.expressaoAritmetica(pBuffReader)) {
+				Token tipoExpressao = this.expressaoAritmetica(pBuffReader);
+				if (tipoExpressao != null) {
 					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
-						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+						if (this.verificarCompatibilidadeTipos(variavelDeclarada, tipoExpressao, new Token(Classificacao.ATRIBUICAO)) != null) {
+							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-						return true;
+							return true;
+						} else {
+							// TODO erro de compatibilidade
+							return false;
+						}
 					} else {
 						atualizarMensagemErro("Atribuicao invalida. " + "Ponto e virgula esperadas.");
 
@@ -417,7 +423,8 @@ public final class Parser {
 	 */
 	private boolean expressaoRelacional(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		if (this.expressaoAritmetica(pBuffReader)) {
+		Token tipo1 = this.expressaoAritmetica(pBuffReader);
+		if (tipo1 != null) {
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.IGUAL) ||
 					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIFERENTE) ||
 					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR) ||
@@ -426,8 +433,14 @@ public final class Parser {
 					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR_IGUAL)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-				if (this.expressaoAritmetica(pBuffReader)) {
-					return true;
+				Token tipo2 = this.expressaoAritmetica(pBuffReader);
+				if (tipo2 != null) {
+					if (this.verificarCompatibilidadeTipos(tipo1, tipo2, null) != null){
+						return true;
+					} else {
+						// TODO erro de compatibilidade
+						return false;
+					}
 				} else {
 					return false;
 				}
@@ -452,16 +465,18 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean expressaoAritmetica(BufferedReader pBuffReader)
+	private Token expressaoAritmetica(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		if (this.termo(pBuffReader)) {
-			if (this.expressaoAritmeticaAuxiliar(pBuffReader)) {
-				return true;
+		Token tipo1 = this.termo(pBuffReader);
+		if (tipo1 != null) {
+			Token tipo2 = this.expressaoAritmeticaAuxiliar(pBuffReader);
+			if (tipo2 != null) {
+				return this.verificarCompatibilidadeTipos(tipo1, tipo2, null);
 			} else {
-				return false;
+				return null;
 			}
 		} else {
-			return false;
+			return null;
 		}
 	}
 
@@ -475,23 +490,25 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean expressaoAritmeticaAuxiliar(BufferedReader pBuffReader)
+	private Token expressaoAritmeticaAuxiliar(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SOMA) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SUBTRACAO)) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			if (this.termo(pBuffReader)) {
-				if (this.expressaoAritmeticaAuxiliar(pBuffReader)) {
-					return true;
+			Token tipo1 = this.termo(pBuffReader);
+			if (tipo1 != null) {
+				Token tipo2 = this.expressaoAritmeticaAuxiliar(pBuffReader);
+				if (tipo2 != null) {
+					return this.verificarCompatibilidadeTipos(tipo1, tipo2, null);
 				} else {
-					return false;
+					return null;
 				}
 			} else {
-				return false;
+				return null;
 			}
 		} else {
-			return true;
+			return new Token(Parser.TOKEN_VAZIO);
 		}
 	}
 
@@ -505,15 +522,17 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean termo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
-		if (this.fator(pBuffReader)) {
-			if (this.termoAuxiliar(pBuffReader)) {
-				return true;
+	private Token termo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+		Token tipo1 = this.fator(pBuffReader);
+		if (tipo1 != null) {
+			Token tipo2 = this.termoAuxiliar(pBuffReader);
+			if (tipo2 != null) {
+				return this.verificarCompatibilidadeTipos(tipo1, tipo2, null);
 			} else {
-				return false;
+				return null;
 			}
 		} else {
-			return false;
+			return null;
 		}
 	}
 
@@ -527,23 +546,27 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean termoAuxiliar(BufferedReader pBuffReader)
+	private Token termoAuxiliar(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
+		
 		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MULTIPLICACAO) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIVISAO)) {
+			Token acao = this.aLookAhead;
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			if (this.fator(pBuffReader)) {
-				if (this.termoAuxiliar(pBuffReader)) {
-					return true;
+			Token tipo1 = this.fator(pBuffReader);
+			if (tipo1 != null) {
+				Token tipo2 = this.termoAuxiliar(pBuffReader);
+				if (tipo2 != null) {
+					return this.verificarCompatibilidadeTipos(tipo1, tipo2, acao);
 				} else {
-					return false;
+					return null;
 				}
 			} else {
-				return false;
+				return null;
 			}
 		} else {
-			return true;
+			return new Token(Parser.TOKEN_VAZIO);
 		}
 	}
 
@@ -557,52 +580,54 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean fator(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+	private Token fator(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+		Token tipoFator;
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			if (this.expressaoAritmetica(pBuffReader)) {
+			tipoFator = this.expressaoAritmetica(pBuffReader);
+			if (tipoFator != null) {
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					return true;
+					return tipoFator;
 				} else {
 					atualizarMensagemErro("Fator invalido. " + "Fim de parenteses esperado.");
 
-					return false;
+					return null;
 				}
 			} else {
-				return false;
+				return null;
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
-			Token variavelDeclarada = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
+			tipoFator = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
 
-			if (variavelDeclarada == null) {
+			if (tipoFator == null) {
 				atualizarMensagemErro("A variavel nao foi declarada.");
 
-				return false;
+				return null;
 			}
 
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return true;
+			return tipoFator;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.REAL) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return true;
+			return new Token(Classificacao.FLOAT);
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INTEIRO) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return true;
+			return new Token(Classificacao.INT);
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CARACTER) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return true;
+			return new Token(Classificacao.CHAR);
 		} else {
 			atualizarMensagemErro("Fator invalido. " +
 				"Identificador, ou real, ou inteiro, caracter, ou expressao aritmetica dentre parenteses esperado.");
 
-			return false;
+			return null;
 		}
 	}
 
@@ -763,11 +788,24 @@ public final class Parser {
 			this.aMensagemErro = pMensagem;
 		}
 	}
-
-	/**
-	 * -
-	 */
-	private void zerarMensagemErro() {
-		this.aMensagemErro = "";
+	
+	private Token verificarCompatibilidadeTipos(Token pTipo1, Token pTipo2, Token pAcao){
+		Token retorno = null;
+		if (pTipo1.getClassificacao().getCodigo() == Classificacao.CHAR && pTipo2.getClassificacao().getCodigo() == Classificacao.CHAR) {
+			retorno = new Token(Classificacao.CHAR);
+		} else if (pTipo1.getClassificacao().getCodigo() == Classificacao.INT && pTipo2.getClassificacao().getCodigo() == Classificacao.INT) {
+			if (pAcao != null && pAcao.getClassificacao().getCodigo() == Classificacao.DIVISAO) {
+				retorno = new Token(Classificacao.FLOAT);
+			} else {
+				retorno = new Token(Classificacao.INT);
+			}
+		} else if (pTipo1.getClassificacao().getCodigo() == Classificacao.FLOAT && pTipo2.getClassificacao().getCodigo() == Classificacao.INT) {
+			retorno = new Token(Classificacao.FLOAT);
+		} else if (pTipo1.getClassificacao().getCodigo() == Classificacao.INT && pTipo2.getClassificacao().getCodigo() == Classificacao.FLOAT && (pAcao == null || pAcao.getClassificacao().getCodigo() != Classificacao.ATRIBUICAO)){
+			retorno = new Token(Classificacao.FLOAT);
+		}
+		atualizarMensagemErro("Tipo incompativeis.");
+		
+		return retorno;
 	}
 }
