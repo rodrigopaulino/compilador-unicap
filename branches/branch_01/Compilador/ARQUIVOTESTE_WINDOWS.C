@@ -2,7 +2,7 @@ int main() {
 	int x,y,z;
 	float h;
 	int c;
-	float w,k,a;
+	float w,k,a,p;
     
     k = x;
     w = 5/x+y*8+5* 7;

@@ -31,6 +31,8 @@ public class Compilador {
 			e.printStackTrace();
 		} catch (ExcecaoCompilador e) {
 			System.out.print(e.getMessage());
+		} catch (ExcecaoSemantico e) {
+			System.out.print(e.getMessage());
 		}
 	}
 }

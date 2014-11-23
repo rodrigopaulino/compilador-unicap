@@ -5,6 +5,7 @@
  */
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Stack;
 
 /**
  * 
@@ -16,6 +17,7 @@ public final class Parser {
 
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
+	private Stack<Simbolo> aTabelaSimbolos = new Stack<Simbolo>();
 	private Token aLookAhead;
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
@@ -49,13 +51,32 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	public void executar(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+	public void executar(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		try {
 			this.programa(pBuffReader);
 		} catch (NullPointerException e) {
 			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
 				(Scanner.getInstancia().getUltimoTokenLido() == null) ? "" : Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 				"Fim de Arquivo Inesperado.");
+		}
+	}
+	
+	/**
+	 * -
+	 */
+	private void iniciarBloco() {
+		Simbolo inicioBloco = new Simbolo(true);
+		this.aTabelaSimbolos.push(inicioBloco);
+	}
+
+	/**
+	 * -
+	 */
+	private void retirarBloco() {
+		Simbolo simbolo = this.aTabelaSimbolos.pop();
+
+		while (!simbolo.isMarcadorBloco()) {
+			simbolo = this.aTabelaSimbolos.pop();
 		}
 	}
 
@@ -67,7 +88,7 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private void programa(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+	private void programa(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INT) {
@@ -119,12 +140,14 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 * @throws IOException
 	 */
-	private boolean bloco(BufferedReader pBuffReader) throws ExcecaoCompilador, IOException {
+	private boolean bloco(BufferedReader pBuffReader) throws ExcecaoCompilador, IOException, ExcecaoSemantico {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_ABRE) {
+			this.iniciarBloco();
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			while (this.declaracaoVariavel(pBuffReader)) {
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_FECHA) {
+					this.retirarBloco();
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
@@ -133,6 +156,7 @@ public final class Parser {
 		
 			while (this.comando(pBuffReader)) {
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_FECHA) {
+					this.retirarBloco();
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
@@ -160,7 +184,7 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean comando(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
+		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.comandoBasico(pBuffReader)) {
 			return true;
 		} else if (this.iteracao(pBuffReader)) {
@@ -221,7 +245,7 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean comandoBasico(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
+		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.atribuicao(pBuffReader)) {
 			return true;
 		} 
@@ -246,7 +270,7 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean iteracao(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
+		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.WHILE) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
@@ -335,8 +359,13 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean atribuicao(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
+		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
+			if (this.variavelDeclarada(this.aLookAhead.getLexema(), false) == null) {
+				throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Variavel usada nao foi declarada.");
+			}
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ATRIBUICAO)) {
@@ -447,7 +476,7 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean expressaoAritmeticaAuxiliar(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
+		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SOMA) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SUBTRACAO)) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
@@ -476,7 +505,7 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean termo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+	private boolean termo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.fator(pBuffReader)) {
 			if (this.termoAuxiliar(pBuffReader)) {
 				return true;
@@ -499,7 +528,7 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean termoAuxiliar(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
+		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MULTIPLICACAO) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIVISAO)) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
@@ -528,7 +557,7 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean fator(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+	private boolean fator(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
@@ -548,6 +577,11 @@ public final class Parser {
 				return false;
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
+			if (this.variavelDeclarada(this.aLookAhead.getLexema(), false) == null) {
+				throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Variavel usada nao foi declarada.");
+			}
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
@@ -579,15 +613,18 @@ public final class Parser {
 	 * @throws ExcecaoCompilador
 	 */
 	private boolean declaracaoVariavel(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
-		if (this.tipo(pBuffReader)) {
+		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
+		Token tipo = this.tipo(pBuffReader);
+		if (tipo != null) {
 			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
+				this.incluirVariavel(new Simbolo(tipo.getClassificacao().getCodigo(), this.aLookAhead.getLexema()));
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				while (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.VIRGULA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
+						this.incluirVariavel(new Simbolo(tipo.getClassificacao().getCodigo(), this.aLookAhead.getLexema()));
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 					} else {
 						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
@@ -624,21 +661,48 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private boolean tipo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+	private Token tipo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+		Token tipo = this.aLookAhead;
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INT) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return true;
+			return tipo;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.FLOAT) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return true;
+			return tipo;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAR) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return true;
+			return tipo;
 		} else {
-			return false;
+			return null;
 		}
+	}
+	
+	private void incluirVariavel(Simbolo pSimbolo) throws ExcecaoSemantico {
+		Simbolo variavelDeclarada = this.variavelDeclarada(pSimbolo.getIdentificador(), true);
+
+		if (variavelDeclarada == null) {
+			this.aTabelaSimbolos.push(pSimbolo);
+		} else {
+			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Variavel ja declarada no mesmo escopo.");
+		}
+	}
+
+	private Simbolo variavelDeclarada(String pIdentificador, boolean pBuscarNoMesmoEscopo) {
+		for (int i = this.aTabelaSimbolos.size() - 1; i >= 0; --i) {
+			Simbolo simbolo = this.aTabelaSimbolos.get(i);
+
+			if (pBuscarNoMesmoEscopo && simbolo.isMarcadorBloco()) {
+				break;
+			} else if (pIdentificador.equals(simbolo.getIdentificador())) {
+				return simbolo;
+			}
+		}
+
+		return null;
 	}
 }
