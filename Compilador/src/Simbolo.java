@@ -17,8 +17,8 @@ public class Simbolo {
 
 
 	public Simbolo(short pTipo, String pLexema) {
-		if ((pTipo == Classificacao.INTEIRO) || (pTipo == Classificacao.REAL) ||
-				(pTipo == Classificacao.CARACTER)) {
+		if ((pTipo == Classificacao.INT) || (pTipo == Classificacao.FLOAT) ||
+				(pTipo == Classificacao.CHAR)) {
 			this.aTipo = new Classificacao(pTipo);
 		}
 		this.aIdentificador = pLexema;
