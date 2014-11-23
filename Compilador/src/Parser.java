@@ -1,11 +1,10 @@
 /*
- * Este arquivo ï¿½ propriedade de Rodrigo Paulino Ferreira de Souza.
- * Nenhuma informaï¿½ï¿½o nele contida pode ser reproduzida,
- * mostrada ou revelada sem permissï¿½o escrita do mesmo.
+ * Este arquivo é propriedade de Rodrigo Paulino Ferreira de Souza.
+ * Nenhuma informação nele contida pode ser reproduzida,
+ * mostrada ou revelada sem permissão escrita do mesmo.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Stack;
 
 /**
  * 
@@ -14,14 +13,10 @@ public final class Parser {
 	//~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
 
 	private static Parser aInstancia;
-	private static final short TOKEN_VAZIO = -1;
 
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
-	private Stack<Token> aTabelaSimbolos = new Stack<Token>();
-	private String aMensagemErro = "";
 	private Token aLookAhead;
-	private Token aTokenPreInclusaoTabela;
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
@@ -87,13 +82,10 @@ public final class Parser {
 					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-						if (!this.bloco(pBuffReader)) {
+						if (this.bloco(pBuffReader) && !Scanner.getInstancia().isFimArquivo()) {
 							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-								Scanner.getInstancia().getUltimoTokenLido().getLexema(), this.aMensagemErro);
-						} else if (!Scanner.getInstancia().isFimArquivo()) {
-							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-								Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-								"Programa finalizado antes do fim de arquivo.");
+									Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+									"Dados escritos fora do escopo do programa.");
 						}
 					} else {
 						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
@@ -119,25 +111,6 @@ public final class Parser {
 
 	/**
 	 * -
-	 */
-	private void iniciarBloco() {
-		Token inicioBloco = new Token(Parser.TOKEN_VAZIO);
-		this.aTabelaSimbolos.push(inicioBloco);
-	}
-
-	/**
-	 * -
-	 */
-	private void retirarBloco() {
-		Token token = this.aTabelaSimbolos.pop();
-
-		while (token.getLexema() != null) {
-			token = this.aTabelaSimbolos.pop();
-		}
-	}
-
-	/**
-	 * -
 	 *
 	 * @param pBuffReader
 	 *
@@ -148,34 +121,31 @@ public final class Parser {
 	 */
 	private boolean bloco(BufferedReader pBuffReader) throws ExcecaoCompilador, IOException {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_ABRE) {
-			this.iniciarBloco();
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			while (this.declaracaoVariavel(pBuffReader)) {
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_FECHA) {
-					this.retirarBloco();
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
 				}
 			}
-
+		
 			while (this.comando(pBuffReader)) {
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_FECHA) {
-					this.retirarBloco();
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
 				}
 			}
-
-			atualizarMensagemErro("Bloco invalido. " + "Bloco nao fechado ou mal formado.");
-
-			return false;
+			
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Bloco invalido.");
 		} else {
-			atualizarMensagemErro("Bloco invalido. " + "Inicio de chaves esperado.");
-
-			return false;
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Bloco invalido. " + "Inicio de chaves esperado.");
 		}
 	}
 
@@ -200,44 +170,42 @@ public final class Parser {
 
 			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+				
+				this.expressaoRelacional(pBuffReader);
 
-				if (this.expressaoRelacional(pBuffReader)) {
-					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
-						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-						if (this.comando(pBuffReader)) {
-							if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ELSE) {
-								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+					if (this.comando(pBuffReader)) {
+						if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ELSE) {
+							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-								if (this.comando(pBuffReader)) {
-									return true;
-								} else {
-									return false;
-								}
-							} else {
-								atualizarMensagemErro("Comando invalido. " + "Palavra else esperada.");
-
+							if (this.comando(pBuffReader)) {
 								return true;
+							} else {
+								throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+										Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+										"Comando invalido dentro do else.");
 							}
 						} else {
-							return false;
+							return true;
 						}
 					} else {
-						atualizarMensagemErro("Comando invalido. " + "Fim de parenteses esperado.");
-
-						return false;
+						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+								Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+								"Comando invalido dentro do if.");
 					}
 				} else {
-					return false;
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+							"Comando invalido. " + "Fim de parenteses esperado.");
 				}
 			} else {
-				atualizarMensagemErro("Comando invalido. " + "Inicio de parenteses esperado.");
-
-				return false;
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Comando invalido. " + "Inicio de parenteses do if esperado.");
 			}
 		} else {
-			atualizarMensagemErro("Comando invalido. " + "Palavra if, ou comando, ou iteracao esperadas.");
-
 			return false;
 		}
 	}
@@ -256,11 +224,15 @@ public final class Parser {
 		throws IOException, ExcecaoCompilador {
 		if (this.atribuicao(pBuffReader)) {
 			return true;
-		} else if (this.bloco(pBuffReader)) {
-			return true;
-		} else {
+		} 
+
+		try {
+			this.bloco(pBuffReader);
+		} catch (ExcecaoCompilador e) {
 			return false;
 		}
+		
+		return true;
 	}
 
 	/**
@@ -280,28 +252,28 @@ public final class Parser {
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+				
+				this.expressaoRelacional(pBuffReader);
+				
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-				if (this.expressaoRelacional(pBuffReader)) {
-					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
-						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
-						if (this.comando(pBuffReader)) {
-							return true;
-						} else {
-							return false;
-						}
+					if (this.comando(pBuffReader)) {
+						return true;
 					} else {
-						atualizarMensagemErro("Iteracao invalida. " + "Fim de parenteses esperado.");
-
-						return false;
+						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+								Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+								"Iteracao invalida. " + "Comando mal formado dentro do while.");
 					}
 				} else {
-					return false;
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+							"Iteracao invalida. " + "Fim de parenteses esperado.");
 				}
 			} else {
-				atualizarMensagemErro("Iteracao invalida. " + "Inicio de parenteses esperado.");
-
-				return false;
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Iteracao invalida. " + "Inicio de parenteses esperado.");
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DO) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
@@ -313,43 +285,41 @@ public final class Parser {
 					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-						if (this.expressaoRelacional(pBuffReader)) {
-							if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+						this.expressaoRelacional(pBuffReader);
+						
+						if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
+							if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
 								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-								if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
-									this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
-									return true;
-								} else {
-									atualizarMensagemErro("Iteracao invalida. " + "Ponto e virgula esperadas.");
-
-									return false;
-								}
+								return true;
 							} else {
-								atualizarMensagemErro("Iteracao invalida. " + "Fim de parenteses esperado.");
-
-								return false;
+								throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+										Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+										"Iteracao invalida. " + "Ponto e virgula esperadas.");
 							}
 						} else {
-							return false;
+							throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+									Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+									"Iteracao invalida. " + "Fim de parenteses esperado.");
 						}
 					} else {
-						atualizarMensagemErro("Iteracao invalida. " + "Inicio de parenteses esperado.");
-
-						return false;
+						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+								Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+								"Iteracao invalida. " + "Inicio de parenteses esperado.");
 					}
 				} else {
-					atualizarMensagemErro("Iteracao invalida. " + "Palavra while esperada.");
-
-					return false;
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+							"Iteracao invalida. " + "Palavra while esperada.");
 				}
 			} else {
-				return false;
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Iteracao invalida. " + "Comando esperado apos o do.");
 			}
 		} else {
-			atualizarMensagemErro("Iteracao invalida. " + "Palavra do/while esperada.");
-
 			return false;
 		}
 	}
@@ -367,88 +337,33 @@ public final class Parser {
 	private boolean atribuicao(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
-			Token variavelDeclarada = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
-
-			if (variavelDeclarada == null) {
-				atualizarMensagemErro("A variavel nao foi declarada.");
-
-				return false;
-			}
-
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ATRIBUICAO)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-				Token tipoExpressao = this.expressaoAritmetica(pBuffReader);
-				if (tipoExpressao != null) {
-					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
-						if (this.verificarCompatibilidadeTipos(variavelDeclarada, tipoExpressao, new Token(Classificacao.ATRIBUICAO)) != null) {
-							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+				try {
+					this.expressaoAritmetica(pBuffReader);
+				} catch (Exception e) {
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+							"Atribuicao invalida. " +
+									"Expressao aritmetica a direita do sinal \"=\" esta mal-formada.");
+				}
+				
+				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
+					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-							return true;
-						} else {
-							// TODO erro de compatibilidade
-							return false;
-						}
-					} else {
-						atualizarMensagemErro("Atribuicao invalida. " + "Ponto e virgula esperadas.");
-
-						return false;
-					}
+					return true;
 				} else {
-					return false;
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+							"Atribuicao invalida. " + "Ponto e virgula esperado.");
 				}
 			} else {
-				atualizarMensagemErro("Atribuicao invalida. " + "Sinal \"=\" esperado.");
-
-				return false;
-			}
-		} else {
-			atualizarMensagemErro("Atribuicao invalida. " + "Identificador esperado.");
-
-			return false;
-		}
-	}
-
-	/**
-	 * -
-	 *
-	 * @param pBuffReader
-	 *
-	 * @return
-	 *
-	 * @throws IOException
-	 * @throws ExcecaoCompilador
-	 */
-	private boolean expressaoRelacional(BufferedReader pBuffReader)
-		throws IOException, ExcecaoCompilador {
-		Token tipo1 = this.expressaoAritmetica(pBuffReader);
-		if (tipo1 != null) {
-			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.IGUAL) ||
-					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIFERENTE) ||
-					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR) ||
-					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR_IGUAL) ||
-					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR) ||
-					(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR_IGUAL)) {
-				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
-
-				Token tipo2 = this.expressaoAritmetica(pBuffReader);
-				if (tipo2 != null) {
-					if (this.verificarCompatibilidadeTipos(tipo1, tipo2, null) != null){
-						return true;
-					} else {
-						// TODO erro de compatibilidade
-						return false;
-					}
-				} else {
-					return false;
-				}
-			} else {
-				atualizarMensagemErro("Expressao relacional invalida. " +
-					"Um dos seguintes operadores esperado: =, !=, >, >=, <, <=.");
-
-				return false;
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Atribuicao invalida. " + "Sinal \"=\" esperado.");
 			}
 		} else {
 			return false;
@@ -465,18 +380,38 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private Token expressaoAritmetica(BufferedReader pBuffReader)
+	private void expressaoRelacional(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		Token tipo1 = this.termo(pBuffReader);
-		if (tipo1 != null) {
-			Token tipo2 = this.expressaoAritmeticaAuxiliar(pBuffReader);
-			if (tipo2 != null) {
-				return this.verificarCompatibilidadeTipos(tipo1, tipo2, null);
-			} else {
-				return null;
+		try {
+			this.expressaoAritmetica(pBuffReader);
+		} catch (Exception e) {
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Expressao relacional invalida. " +
+							"Expressao aritmetica a esquerda do operador relacional esta mal-formada.");
+		}
+		
+		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.IGUAL) ||
+				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIFERENTE) ||
+				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR) ||
+				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR_IGUAL) ||
+				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR) ||
+				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR_IGUAL)) {
+			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
+			try {
+				this.expressaoAritmetica(pBuffReader);
+			} catch (Exception e) {
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Expressao relacional invalida. " +
+								"Expressao aritmetica a direita do operador relacional esta mal-formada.");
 			}
 		} else {
-			return null;
+			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Expressao relacional invalida. " +
+							"Um dos seguintes operadores esperado: ==, !=, >, >=, <, <=.");
 		}
 	}
 
@@ -490,25 +425,44 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private Token expressaoAritmeticaAuxiliar(BufferedReader pBuffReader)
+	private void expressaoAritmetica(BufferedReader pBuffReader)
+		throws Exception {
+		if (this.termo(pBuffReader)) {
+			if (!this.expressaoAritmeticaAuxiliar(pBuffReader)) {
+				throw new Exception();
+			}
+		} else {
+			throw new Exception();
+		}
+	}
+
+	/**
+	 * -
+	 *
+	 * @param pBuffReader
+	 *
+	 * @return
+	 *
+	 * @throws IOException
+	 * @throws ExcecaoCompilador
+	 */
+	private boolean expressaoAritmeticaAuxiliar(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SOMA) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.SUBTRACAO)) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			Token tipo1 = this.termo(pBuffReader);
-			if (tipo1 != null) {
-				Token tipo2 = this.expressaoAritmeticaAuxiliar(pBuffReader);
-				if (tipo2 != null) {
-					return this.verificarCompatibilidadeTipos(tipo1, tipo2, null);
+			if (this.termo(pBuffReader)) {
+				if (this.expressaoAritmeticaAuxiliar(pBuffReader)) {
+					return true;
 				} else {
-					return null;
+					return false;
 				}
 			} else {
-				return null;
+				return false;
 			}
 		} else {
-			return new Token(Parser.TOKEN_VAZIO);
+			return true;
 		}
 	}
 
@@ -522,17 +476,15 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private Token termo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
-		Token tipo1 = this.fator(pBuffReader);
-		if (tipo1 != null) {
-			Token tipo2 = this.termoAuxiliar(pBuffReader);
-			if (tipo2 != null) {
-				return this.verificarCompatibilidadeTipos(tipo1, tipo2, null);
+	private boolean termo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
+		if (this.fator(pBuffReader)) {
+			if (this.termoAuxiliar(pBuffReader)) {
+				return true;
 			} else {
-				return null;
+				return false;
 			}
 		} else {
-			return null;
+			return false;
 		}
 	}
 
@@ -546,27 +498,23 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private Token termoAuxiliar(BufferedReader pBuffReader)
+	private boolean termoAuxiliar(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
-		
 		if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MULTIPLICACAO) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DIVISAO)) {
-			Token acao = this.aLookAhead;
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			Token tipo1 = this.fator(pBuffReader);
-			if (tipo1 != null) {
-				Token tipo2 = this.termoAuxiliar(pBuffReader);
-				if (tipo2 != null) {
-					return this.verificarCompatibilidadeTipos(tipo1, tipo2, acao);
+			if (this.fator(pBuffReader)) {
+				if (this.termoAuxiliar(pBuffReader)) {
+					return true;
 				} else {
-					return null;
+					return false;
 				}
 			} else {
-				return null;
+				return false;
 			}
 		} else {
-			return new Token(Parser.TOKEN_VAZIO);
+			return true;
 		}
 	}
 
@@ -580,54 +528,43 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private Token fator(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
-		Token tipoFator;
+	private boolean fator(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			tipoFator = this.expressaoAritmetica(pBuffReader);
-			if (tipoFator != null) {
-				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
-					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+			try {
+				this.expressaoAritmetica(pBuffReader);
+			} catch (Exception e) {
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Fator invalido. " + "Expressao aritmetica dentre parenteses invalida.");
+			}
+			
+			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					return tipoFator;
-				} else {
-					atualizarMensagemErro("Fator invalido. " + "Fim de parenteses esperado.");
-
-					return null;
-				}
+				return true;
 			} else {
-				return null;
+				return false;
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
-			tipoFator = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
-
-			if (tipoFator == null) {
-				atualizarMensagemErro("A variavel nao foi declarada.");
-
-				return null;
-			}
-
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return tipoFator;
+			return true;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.REAL) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return new Token(Classificacao.FLOAT);
+			return true;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INTEIRO) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return new Token(Classificacao.INT);
+			return true;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CARACTER) {
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-			return new Token(Classificacao.CHAR);
+			return true;
 		} else {
-			atualizarMensagemErro("Fator invalido. " +
-				"Identificador, ou real, ou inteiro, caracter, ou expressao aritmetica dentre parenteses esperado.");
-
-			return null;
+			return false;
 		}
 	}
 
@@ -644,105 +581,37 @@ public final class Parser {
 	private boolean declaracaoVariavel(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador {
 		if (this.tipo(pBuffReader)) {
-			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) &&
-					this.incluirVariavel(this.aLookAhead.getLexema())) {
+			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				while (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.VIRGULA) {
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-					if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) &&
-							this.incluirVariavel(this.aLookAhead.getLexema())) {
+					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 					} else {
-						zerarTokenPreInclusao();
-						atualizarMensagemErro("Declaracao de variavel invalida. " + "Identificador esperado.");
-
-						return false;
+						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+								Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+								"Declaracao de variavel invalida. " + "Identificador esperado.");
 					}
 				}
 
 				if (this.aLookAhead.getClassificacao().getCodigo() != Classificacao.PONTO_VIRGULA) {
-					zerarTokenPreInclusao();
-					atualizarMensagemErro("Declaracao de variavel invalida. " + "Ponto e virgula esperadas.");
-
-					return false;
+					throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+							"Declaracao de variavel invalida. " + "Ponto e virgula esperado.");
 				}
-				zerarTokenPreInclusao();
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 				return true;
 			} else {
-				zerarTokenPreInclusao();
-				atualizarMensagemErro("Declaracao de variavel invalida. " + "Identificador esperado.");
-
-				return false;
+				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Declaracao de variavel invalida. " + "Identificador esperado.");
 			}
 		} else {
 			return false;
 		}
-	}
-
-	/**
-	 * -
-	 *
-	 * @param pIdentificador
-	 *
-	 * @return
-	 */
-	private boolean incluirVariavel(String pIdentificador) {
-		Token variavelDeclarada = this.variavelDeclarada(pIdentificador, true);
-
-		if (variavelDeclarada == null) {
-			variavelDeclarada = new Token(this.aTokenPreInclusaoTabela.getClassificacao().getCodigo(), pIdentificador);
-			this.aTabelaSimbolos.push(variavelDeclarada);
-
-			return true;
-		} else {
-			atualizarMensagemErro("Variavel ja declarada neste escopo.");
-
-			return false;
-		}
-	}
-
-	/**
-	 * -
-	 *
-	 * @param pIdentificador
-	 * @param pBuscarNoProprioEscopo
-	 *
-	 * @return
-	 */
-	private Token variavelDeclarada(String pIdentificador, boolean pBuscarNoProprioEscopo) {
-		for (int i = this.aTabelaSimbolos.size() - 1; i >= 0; --i) {
-			Token token = this.aTabelaSimbolos.get(i);
-
-			if (pBuscarNoProprioEscopo && (token.getLexema() == null)) {
-				break;
-			}
-
-			if (pIdentificador.equals(token.getLexema())) {
-				return token;
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * -
-	 */
-	private void zerarTokenPreInclusao() {
-		this.aTokenPreInclusaoTabela = null;
-	}
-
-	/**
-	 * -
-	 *
-	 * @param pTipo
-	 */
-	private void iniciarTokenPreInclusao(short pTipo) {
-		this.aTokenPreInclusaoTabela = new Token(pTipo);
 	}
 
 	/**
@@ -757,55 +626,19 @@ public final class Parser {
 	 */
 	private boolean tipo(BufferedReader pBuffReader) throws IOException, ExcecaoCompilador {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INT) {
-			iniciarTokenPreInclusao(Classificacao.INT);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.FLOAT) {
-			iniciarTokenPreInclusao(Classificacao.FLOAT);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAR) {
-			iniciarTokenPreInclusao(Classificacao.CHAR);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return true;
 		} else {
-			atualizarMensagemErro("Tipo invalido. " + "Tipos permitidos: int, float e char.");
-
 			return false;
 		}
-	}
-
-	/**
-	 * - Atualiza a mensagem de erro caso seja o primeiro erro encontrado.
-	 *
-	 * @param pMensagem
-	 */
-	private void atualizarMensagemErro(String pMensagem) {
-		if (this.aMensagemErro.equals("")) {
-			this.aMensagemErro = pMensagem;
-		}
-	}
-	
-	private Token verificarCompatibilidadeTipos(Token pTipo1, Token pTipo2, Token pAcao){
-		Token retorno = null;
-		if (pTipo1.getClassificacao().getCodigo() == Classificacao.CHAR && pTipo2.getClassificacao().getCodigo() == Classificacao.CHAR) {
-			retorno = new Token(Classificacao.CHAR);
-		} else if (pTipo1.getClassificacao().getCodigo() == Classificacao.INT && pTipo2.getClassificacao().getCodigo() == Classificacao.INT) {
-			if (pAcao != null && pAcao.getClassificacao().getCodigo() == Classificacao.DIVISAO) {
-				retorno = new Token(Classificacao.FLOAT);
-			} else {
-				retorno = new Token(Classificacao.INT);
-			}
-		} else if (pTipo1.getClassificacao().getCodigo() == Classificacao.FLOAT && pTipo2.getClassificacao().getCodigo() == Classificacao.INT) {
-			retorno = new Token(Classificacao.FLOAT);
-		} else if (pTipo1.getClassificacao().getCodigo() == Classificacao.INT && pTipo2.getClassificacao().getCodigo() == Classificacao.FLOAT && (pAcao == null || pAcao.getClassificacao().getCodigo() != Classificacao.ATRIBUICAO)){
-			retorno = new Token(Classificacao.FLOAT);
-		}
-		atualizarMensagemErro("Tipo incompativeis.");
-		
-		return retorno;
 	}
 }
