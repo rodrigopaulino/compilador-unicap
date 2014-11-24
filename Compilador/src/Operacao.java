@@ -4,7 +4,8 @@
  * mostrada ou revelada sem permissão escrita do mesmo.
  */
 /**
- * 
+ * Tipo auxiliar na verificação semântica e geração de código
+ * intermediário de Termos e Expressões Aritméticas.
  */
 public class Operacao {
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------

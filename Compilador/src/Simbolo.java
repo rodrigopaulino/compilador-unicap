@@ -4,7 +4,7 @@
  * mostrada ou revelada sem permissão escrita do mesmo.
  */
 /**
- * 
+ * Tipo auxiliar para manutenção e uso da Tabela de Símbolos.
  */
 public class Simbolo {
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
