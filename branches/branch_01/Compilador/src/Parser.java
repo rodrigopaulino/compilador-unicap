@@ -19,6 +19,9 @@ public final class Parser {
 
 	private Stack<Simbolo> aTabelaSimbolos = new Stack<Simbolo>();
 	private Token aLookAhead;
+	private int nT = 0;
+	private int nL = 0;
+	private StringBuffer codigoIntermediario = new StringBuffer();
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
@@ -78,6 +81,38 @@ public final class Parser {
 		while (!simbolo.isMarcadorBloco()) {
 			simbolo = this.aTabelaSimbolos.pop();
 		}
+	}
+	
+	/**
+	 * -
+	 */
+	private void incluirVariavel(Simbolo pSimbolo) throws ExcecaoSemantico {
+		Simbolo variavelDeclarada = this.variavelDeclarada(pSimbolo.getIdentificador(), true);
+
+		if (variavelDeclarada == null) {
+			this.aTabelaSimbolos.push(pSimbolo);
+		} else {
+			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Variavel ja declarada no mesmo escopo.");
+		}
+	}
+
+	/**
+	 * -
+	 */
+	private Simbolo variavelDeclarada(String pIdentificador, boolean pBuscarNoMesmoEscopo) {
+		for (int i = this.aTabelaSimbolos.size() - 1; i >= 0; --i) {
+			Simbolo simbolo = this.aTabelaSimbolos.get(i);
+
+			if (pBuscarNoMesmoEscopo && simbolo.isMarcadorBloco()) {
+				break;
+			} else if (pIdentificador.equals(simbolo.getIdentificador())) {
+				return simbolo;
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -676,22 +711,22 @@ public final class Parser {
 						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 						"Variavel usada nao foi declarada.");
 			}
-			tipo = new Simbolo(variavelDeclarada.getTipo().getCodigo(), null);
+			tipo = variavelDeclarada;
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return tipo;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.REAL) {
-			tipo = new Simbolo(Classificacao.FLOAT, null);
+			tipo = new Simbolo(Classificacao.FLOAT, this.aLookAhead.getLexema());
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return tipo;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.INTEIRO) {
-			tipo = new Simbolo(Classificacao.INT, null);
+			tipo = new Simbolo(Classificacao.INT, this.aLookAhead.getLexema());
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return tipo;
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CARACTER) {
-			tipo = new Simbolo(Classificacao.CHAR, null);
+			tipo = new Simbolo(Classificacao.CHAR, this.aLookAhead.getLexema());
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return tipo;
@@ -776,31 +811,5 @@ public final class Parser {
 		} else {
 			return null;
 		}
-	}
-	
-	private void incluirVariavel(Simbolo pSimbolo) throws ExcecaoSemantico {
-		Simbolo variavelDeclarada = this.variavelDeclarada(pSimbolo.getIdentificador(), true);
-
-		if (variavelDeclarada == null) {
-			this.aTabelaSimbolos.push(pSimbolo);
-		} else {
-			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-					"Variavel ja declarada no mesmo escopo.");
-		}
-	}
-
-	private Simbolo variavelDeclarada(String pIdentificador, boolean pBuscarNoMesmoEscopo) {
-		for (int i = this.aTabelaSimbolos.size() - 1; i >= 0; --i) {
-			Simbolo simbolo = this.aTabelaSimbolos.get(i);
-
-			if (pBuscarNoMesmoEscopo && simbolo.isMarcadorBloco()) {
-				break;
-			} else if (pIdentificador.equals(simbolo.getIdentificador())) {
-				return simbolo;
-			}
-		}
-
-		return null;
 	}
 }
