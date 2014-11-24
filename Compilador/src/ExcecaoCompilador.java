@@ -30,6 +30,10 @@ public class ExcecaoCompilador extends Exception {
 		this.aMessagem = "ERRO na linha " + pLinha + ", coluna " + pColuna + ", ultimo token lido \"" + pUltimoToken + "\":" +
 			pErro;
 	}
+	
+	public ExcecaoCompilador() {
+		super();
+	}
 
 	//~ Metodos --------------------------------------------------------------------------------------------------------------------
 
