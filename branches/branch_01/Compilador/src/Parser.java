@@ -22,7 +22,6 @@ public final class Parser {
 	private int aNT = 0;
 	private int aNL = 0;
 	private StringBuffer aCodigoIntermediario = new StringBuffer();
-	private Operacao aOperacao;
 
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
@@ -64,57 +63,6 @@ public final class Parser {
 				(Scanner.getInstancia().getUltimoTokenLido() == null) ? "" : Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 				"Fim de Arquivo Inesperado.");
 		}
-	}
-	
-	/**
-	 * -
-	 */
-	private void iniciarBloco() {
-		Simbolo inicioBloco = new Simbolo(true);
-		this.aTabelaSimbolos.push(inicioBloco);
-	}
-
-	/**
-	 * -
-	 */
-	private void retirarBloco() {
-		Simbolo simbolo = this.aTabelaSimbolos.pop();
-
-		while (!simbolo.isMarcadorBloco()) {
-			simbolo = this.aTabelaSimbolos.pop();
-		}
-	}
-	
-	/**
-	 * -
-	 */
-	private void incluirVariavel(Simbolo pSimbolo) throws ExcecaoSemantico {
-		Simbolo variavelDeclarada = this.variavelDeclarada(pSimbolo.getIdentificador(), true);
-
-		if (variavelDeclarada == null) {
-			this.aTabelaSimbolos.push(pSimbolo);
-		} else {
-			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-					"Variavel ja declarada no mesmo escopo.");
-		}
-	}
-
-	/**
-	 * -
-	 */
-	private Simbolo variavelDeclarada(String pIdentificador, boolean pBuscarNoMesmoEscopo) {
-		for (int i = this.aTabelaSimbolos.size() - 1; i >= 0; --i) {
-			Simbolo simbolo = this.aTabelaSimbolos.get(i);
-
-			if (pBuscarNoMesmoEscopo && simbolo.isMarcadorBloco()) {
-				break;
-			} else if (pIdentificador.equals(simbolo.getIdentificador())) {
-				return simbolo;
-			}
-		}
-
-		return null;
 	}
 
 	/**
@@ -411,13 +359,7 @@ public final class Parser {
 		Simbolo tipo1 = null;
 		Simbolo tipo2 = null;
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
-			Simbolo variavelDeclarada = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
-			if (variavelDeclarada == null) {
-				throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-						"Variavel usada nao foi declarada.");
-			}
-			tipo1 = variavelDeclarada;
+			tipo1 = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ATRIBUICAO)) {
@@ -666,13 +608,7 @@ public final class Parser {
 				return null;
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ID) {
-			Simbolo variavelDeclarada = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
-			if (variavelDeclarada == null) {
-				throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-						"Variavel usada nao foi declarada.");
-			}
-			tipo = variavelDeclarada;
+			tipo = this.variavelDeclarada(this.aLookAhead.getLexema(), false);
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			return tipo;
@@ -773,6 +709,74 @@ public final class Parser {
 			return null;
 		}
 	}
+	
+	/*
+	 * 
+	 * MÉTODOS DE MANIPULAÇÃO DE TABELA DE SÍMBOLOS
+	 * 
+	 */
+
+	/**
+	 * Método responsável por iniciar a Tabela de Símbolos.
+	 */
+	private void iniciarBloco() {
+		Simbolo inicioBloco = new Simbolo(true);
+		this.aTabelaSimbolos.push(inicioBloco);
+	}
+
+	/**
+	 * Método responsável por retirar o último bloco visitado da Tabela de Símbolos.
+	 */
+	private void retirarBloco() {
+		Simbolo simbolo = this.aTabelaSimbolos.pop();
+
+		while (!simbolo.isMarcadorBloco()) {
+			simbolo = this.aTabelaSimbolos.pop();
+		}
+	}
+	
+	/**
+	 * Método responsável por incluir uma nova variável na Tabela de Símbolos.
+	 * 
+	 * @param pSimbolo Variável a ser inserida.
+	 * @throws ExcecaoSemantico Exceção lançada quando a variável já foi declarada no mesmo escopo.
+	 */
+	private void incluirVariavel(Simbolo pSimbolo) throws ExcecaoSemantico {
+		try {
+			if (this.variavelDeclarada(pSimbolo.getIdentificador(), true) != null) {
+				throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+						"Variavel ja declarada no mesmo escopo.");
+			}
+		} catch (ExcecaoSemantico e) {
+			this.aTabelaSimbolos.push(pSimbolo);
+		}
+	}
+
+	/**
+	 * Método responsável por verificar se uma variável usada já foi declarada.
+	 * 
+	 * @param pIdentificador Lexema da variável
+	 * @param pBuscarNoMesmoEscopo Indicador para buscar variável somente no mesmo escopo
+	 * @return Variável declarada
+	 * @throws ExcecaoSemantico Caso não seja encontrada, uma exceção é lançada
+	 */
+	private Simbolo variavelDeclarada(String pIdentificador, boolean pBuscarNoMesmoEscopo) 
+			throws ExcecaoSemantico {
+		for (int i = this.aTabelaSimbolos.size() - 1; i >= 0; --i) {
+			Simbolo simbolo = this.aTabelaSimbolos.get(i);
+
+			if (pBuscarNoMesmoEscopo && simbolo.isMarcadorBloco()) {
+				break;
+			} else if (pIdentificador.equals(simbolo.getIdentificador())) {
+				return simbolo;
+			}
+		}
+		
+		throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+			Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+				"Variavel usada nao foi declarada.");
+	}
 
 	/*
 	 * 
@@ -780,6 +784,14 @@ public final class Parser {
 	 * 
 	 */
 	
+	/**
+	 * Método responsável por gerar código intermediário das gerações do não-terminal "atribuicao".
+	 * Além disso, verifica semanticamente a compatibilidade de tipos.
+	 * 
+	 * @param pSimboloEsq
+	 * @param pSimboloDir
+	 * @throws ExcecaoSemantico
+	 */
 	public void gerarCodigoAtribuicao(Simbolo pSimboloEsq, Simbolo pSimboloDir) throws ExcecaoSemantico {
 		if (pSimboloEsq.getTipo().getCodigo() == pSimboloDir.getTipo().getCodigo()) {
 			this.aCodigoIntermediario.append(pSimboloEsq.getIdentificador() + " = " 
@@ -795,8 +807,19 @@ public final class Parser {
 					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 					"Atribuicao de tipos incompativeis.");
 		}
+		this.aCodigoIntermediario.append("\n");
 	}
 	
+	/**
+	 * Método responsável por gerar código intermediário das gerações do não-terminal "expr_relacional".
+	 * Além disso, verifica semanticamente a compatibilidade de tipos.
+	 * 
+	 * @param pOperador
+	 * @param pSimboloEsq
+	 * @param pSimboloDir
+	 * @return
+	 * @throws ExcecaoSemantico
+	 */
 	public Simbolo gerarCodigoExpressaorRelacional(Token pOperador, Simbolo pSimboloEsq
 			, Simbolo pSimboloDir) throws ExcecaoSemantico {
 		Simbolo simboloResultante;
@@ -825,9 +848,19 @@ public final class Parser {
 					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 					"Expressao relacional com tipos incompativeis.");
 		}
+		this.aCodigoIntermediario.append("\n");
 		return simboloResultante;
 	}
 	
+	/**
+	 * Método responsável por gerar código intermediário das gerações do não-terminal "expr_arit".
+	 * Além disso, verifica semanticamente a compatibilidade de tipos.
+	 * 
+	 * @param pSimbolo
+	 * @param pOperacao
+	 * @return
+	 * @throws ExcecaoSemantico
+	 */
 	public Simbolo gerarCodigoExpressaoAritmetica(Simbolo pSimbolo, Operacao pOperacao) throws ExcecaoSemantico {
 		Simbolo simboloResultante;
 		if (pSimbolo.getTipo().getCodigo() == pOperacao.getSimbolo().getTipo().getCodigo()) {
@@ -870,9 +903,19 @@ public final class Parser {
 					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 					"Expressao aritmetica com tipos incompativeis.");
 		}
+		this.aCodigoIntermediario.append("\n");
 		return simboloResultante;
 	}
 	
+	/**
+	 * Método responsável por gerar código intermediário das gerações do não-terminal "termo".
+	 * Além disso, verifica semanticamente a compatibilidade de tipos.
+	 * 
+	 * @param pSimbolo
+	 * @param pOperacao
+	 * @return
+	 * @throws ExcecaoSemantico
+	 */
 	public Simbolo gerarCodigoTermo(Simbolo pSimbolo, Operacao pOperacao) throws ExcecaoSemantico {
 		Simbolo simboloResultante;
 		if (pSimbolo.getTipo().getCodigo() == pOperacao.getSimbolo().getTipo().getCodigo()) {
@@ -926,6 +969,7 @@ public final class Parser {
 					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 					"Expressao aritmetica com tipos incompativeis.");
 		}
+		this.aCodigoIntermediario.append("\n");
 		return simboloResultante;
 	}
 }
