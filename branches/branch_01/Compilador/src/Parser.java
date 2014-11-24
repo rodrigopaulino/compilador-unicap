@@ -459,10 +459,11 @@ public final class Parser {
 	 * @throws IOException
 	 * @throws ExcecaoCompilador
 	 */
-	private void expressaoRelacional(BufferedReader pBuffReader)
+	private Simbolo expressaoRelacional(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		Simbolo tipo1 = null;
 		Simbolo tipo2 = null;
+		Token operador = null;
 		try {
 			tipo1 = this.expressaoAritmetica(pBuffReader);
 		} catch (ExcecaoCompilador e) {
@@ -478,20 +479,12 @@ public final class Parser {
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MAIOR_IGUAL) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR) ||
 				(this.aLookAhead.getClassificacao().getCodigo() == Classificacao.MENOR_IGUAL)) {
+			operador = this.aLookAhead;
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			try {
 				tipo2 = this.expressaoAritmetica(pBuffReader);
-				
-				if ((tipo1.getTipo().getCodigo() != tipo2.getTipo().getCodigo()) &&
-						!((tipo1.getTipo().getCodigo() == Classificacao.INT 
-								&& tipo2.getTipo().getCodigo() == Classificacao.FLOAT) ||
-								(tipo1.getTipo().getCodigo() == Classificacao.FLOAT 
-								&& tipo2.getTipo().getCodigo() == Classificacao.INT))) {
-					throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-							Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-							"Expressao relacional com tipos incompativeis.");
-				}
+				return this.gerarCodigoExpressaorRelacional(operador, tipo1, tipo2);
 			} catch (ExcecaoCompilador e) {
 				throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
 						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
@@ -572,51 +565,6 @@ public final class Parser {
 			return new Operacao();
 		}
 	}
-	
-	public Simbolo gerarCodigoExpressaoAritmetica(Simbolo pSimbolo, Operacao pOperacao) throws ExcecaoSemantico {
-		Simbolo simboloResultante;
-		if (pSimbolo.getTipo().getCodigo() == pOperacao.getSimbolo().getTipo().getCodigo()) {
-			if (pOperacao.getOperacao().getCodigo() == Classificacao.SOMA) {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-						+ pSimbolo.getIdentificador() + "+" 
-						+ pOperacao.getSimbolo().getIdentificador() + "\n");
-			} else {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-						+ pSimbolo.getIdentificador() + "-" 
-						+ pOperacao.getSimbolo().getIdentificador() + "\n");
-			}
-			simboloResultante = new Simbolo(pSimbolo.getTipo().getCodigo(), "T" + (this.aNT - 1));
-		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.INT 
-				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.FLOAT){
-			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-					+ "i2f(" + pSimbolo.getIdentificador() + ")\n");
-			if (pOperacao.getOperacao().getCodigo() == Classificacao.SOMA) {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
-						+ (this.aNT - 2) + "+" + pOperacao.getSimbolo().getIdentificador() + "\n");
-			} else {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
-						+ (this.aNT - 2) + "-" + pOperacao.getSimbolo().getIdentificador() + "\n");
-			}
-			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
-		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.FLOAT 
-				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.INT) {
-			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-					+ "i2f(" + pOperacao.getSimbolo().getIdentificador() + ")\n");
-			if (pOperacao.getOperacao().getCodigo() == Classificacao.SOMA) {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-						+ pSimbolo.getIdentificador() + "+T" + (this.aNT - 2) + "\n");
-			} else {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-						+ pSimbolo.getIdentificador() + "-T" + (this.aNT - 2) + "\n");
-			}
-			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
-		} else {
-			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-					"Expressao aritmetica com tipos incompativeis.");
-		}
-		return simboloResultante;
-	}
 
 	/**
 	 * -
@@ -682,62 +630,6 @@ public final class Parser {
 		} else {
 			return new Operacao();
 		}
-	}
-	
-	public Simbolo gerarCodigoTermo(Simbolo pSimbolo, Operacao pOperacao) throws ExcecaoSemantico {
-		Simbolo simboloResultante;
-		if (pSimbolo.getTipo().getCodigo() == pOperacao.getSimbolo().getTipo().getCodigo()) {
-			if (pOperacao.getOperacao().getCodigo() == Classificacao.DIVISAO) {
-				if (pSimbolo.getTipo().getCodigo() == Classificacao.INT) {
-					this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-							+ "i2f(" + pOperacao.getSimbolo().getIdentificador() + ")\n");
-					this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-							+ "i2f(" + pSimbolo.getIdentificador() + ")\n");
-					this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
-							+ (this.aNT - 2) + "/T" + (this.aNT - 3) + "\n");
-					simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
-				} else {
-					this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-							+ pSimbolo.getIdentificador() + "/" 
-							+ pOperacao.getSimbolo().getIdentificador() + "\n");
-					simboloResultante = new Simbolo(pSimbolo.getTipo().getCodigo(), "T" + (this.aNT - 1));
-				}
-			} else {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-						+ pSimbolo.getIdentificador() + "*" 
-						+ pOperacao.getSimbolo().getIdentificador() + "\n");
-				simboloResultante = new Simbolo(pSimbolo.getTipo().getCodigo(), "T" + (this.aNT - 1));
-			}
-		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.INT 
-				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.FLOAT){
-			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-					+ "i2f(" + pSimbolo.getIdentificador() + ")\n");
-			if (pOperacao.getOperacao().getCodigo() == Classificacao.DIVISAO) {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
-						+ (this.aNT - 2) + "/" + pOperacao.getSimbolo().getIdentificador() + "\n");
-			} else {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
-						+ (this.aNT - 2) + "*" + pOperacao.getSimbolo().getIdentificador() + "\n");
-			}
-			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
-		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.FLOAT 
-				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.INT) {
-			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-					+ "i2f(" + pOperacao.getSimbolo().getIdentificador() + ")\n");
-			if (pOperacao.getOperacao().getCodigo() == Classificacao.DIVISAO) {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-						+ pSimbolo.getIdentificador() + "/T" + (this.aNT - 2) + "\n");
-			} else {
-				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
-						+ pSimbolo.getIdentificador() + "*T" + (this.aNT - 2) + "\n");
-			}
-			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
-		} else {
-			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-					"Expressao aritmetica com tipos incompativeis.");
-		}
-		return simboloResultante;
 	}
 
 	/**
@@ -877,5 +769,143 @@ public final class Parser {
 		} else {
 			return null;
 		}
+	}
+
+	/*
+	 * 
+	 * MÉTODOS DE GERAÇÃO DE CÓDIGO
+	 * 
+	 */
+	
+	public Simbolo gerarCodigoExpressaorRelacional(Token pOperador, Simbolo pSimboloEsq
+			, Simbolo pSimboloDir) throws ExcecaoSemantico {
+		Simbolo simboloResultante;
+		if (pSimboloEsq.getTipo().getCodigo() == pSimboloDir.getTipo().getCodigo()) {
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ pSimboloEsq.getIdentificador() + pOperador.getLexema() 
+					+ pSimboloDir.getIdentificador() + "\n");
+			simboloResultante = new Simbolo(pSimboloEsq.getTipo().getCodigo(), "T" + (this.aNT - 1));
+		} else if (pSimboloEsq.getTipo().getCodigo() == Classificacao.INT 
+				&& pSimboloDir.getTipo().getCodigo() == Classificacao.FLOAT){
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ "i2f(" + pSimboloEsq.getIdentificador() + ")\n");
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
+					+ (this.aNT - 2) + pOperador.getLexema() + pSimboloDir.getIdentificador() + "\n");
+			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
+		} else if (pSimboloEsq.getTipo().getCodigo() == Classificacao.FLOAT 
+				&& pSimboloDir.getTipo().getCodigo() == Classificacao.INT) {
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ "i2f(" + pSimboloDir.getIdentificador() + ")\n");
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ pSimboloEsq.getIdentificador() + pOperador.getLexema() + "T" 
+					+ (this.aNT - 2) + "\n");
+			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
+		} else {
+			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Expressao relacional com tipos incompativeis.");
+		}
+		return simboloResultante;
+	}
+	
+	public Simbolo gerarCodigoExpressaoAritmetica(Simbolo pSimbolo, Operacao pOperacao) throws ExcecaoSemantico {
+		Simbolo simboloResultante;
+		if (pSimbolo.getTipo().getCodigo() == pOperacao.getSimbolo().getTipo().getCodigo()) {
+			if (pOperacao.getOperacao().getCodigo() == Classificacao.SOMA) {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+						+ pSimbolo.getIdentificador() + "+" 
+						+ pOperacao.getSimbolo().getIdentificador() + "\n");
+			} else {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+						+ pSimbolo.getIdentificador() + "-" 
+						+ pOperacao.getSimbolo().getIdentificador() + "\n");
+			}
+			simboloResultante = new Simbolo(pSimbolo.getTipo().getCodigo(), "T" + (this.aNT - 1));
+		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.INT 
+				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.FLOAT){
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ "i2f(" + pSimbolo.getIdentificador() + ")\n");
+			if (pOperacao.getOperacao().getCodigo() == Classificacao.SOMA) {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
+						+ (this.aNT - 2) + "+" + pOperacao.getSimbolo().getIdentificador() + "\n");
+			} else {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
+						+ (this.aNT - 2) + "-" + pOperacao.getSimbolo().getIdentificador() + "\n");
+			}
+			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
+		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.FLOAT 
+				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.INT) {
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ "i2f(" + pOperacao.getSimbolo().getIdentificador() + ")\n");
+			if (pOperacao.getOperacao().getCodigo() == Classificacao.SOMA) {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+						+ pSimbolo.getIdentificador() + "+T" + (this.aNT - 2) + "\n");
+			} else {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+						+ pSimbolo.getIdentificador() + "-T" + (this.aNT - 2) + "\n");
+			}
+			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
+		} else {
+			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Expressao aritmetica com tipos incompativeis.");
+		}
+		return simboloResultante;
+	}
+	
+	public Simbolo gerarCodigoTermo(Simbolo pSimbolo, Operacao pOperacao) throws ExcecaoSemantico {
+		Simbolo simboloResultante;
+		if (pSimbolo.getTipo().getCodigo() == pOperacao.getSimbolo().getTipo().getCodigo()) {
+			if (pOperacao.getOperacao().getCodigo() == Classificacao.DIVISAO) {
+				if (pSimbolo.getTipo().getCodigo() == Classificacao.INT) {
+					this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+							+ "i2f(" + pOperacao.getSimbolo().getIdentificador() + ")\n");
+					this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+							+ "i2f(" + pSimbolo.getIdentificador() + ")\n");
+					this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
+							+ (this.aNT - 2) + "/T" + (this.aNT - 3) + "\n");
+					simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
+				} else {
+					this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+							+ pSimbolo.getIdentificador() + "/" 
+							+ pOperacao.getSimbolo().getIdentificador() + "\n");
+					simboloResultante = new Simbolo(pSimbolo.getTipo().getCodigo(), "T" + (this.aNT - 1));
+				}
+			} else {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+						+ pSimbolo.getIdentificador() + "*" 
+						+ pOperacao.getSimbolo().getIdentificador() + "\n");
+				simboloResultante = new Simbolo(pSimbolo.getTipo().getCodigo(), "T" + (this.aNT - 1));
+			}
+		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.INT 
+				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.FLOAT){
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ "i2f(" + pSimbolo.getIdentificador() + ")\n");
+			if (pOperacao.getOperacao().getCodigo() == Classificacao.DIVISAO) {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
+						+ (this.aNT - 2) + "/" + pOperacao.getSimbolo().getIdentificador() + "\n");
+			} else {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = T" 
+						+ (this.aNT - 2) + "*" + pOperacao.getSimbolo().getIdentificador() + "\n");
+			}
+			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
+		} else if (pSimbolo.getTipo().getCodigo() == Classificacao.FLOAT 
+				&& pOperacao.getSimbolo().getTipo().getCodigo() == Classificacao.INT) {
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ "i2f(" + pOperacao.getSimbolo().getIdentificador() + ")\n");
+			if (pOperacao.getOperacao().getCodigo() == Classificacao.DIVISAO) {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+						+ pSimbolo.getIdentificador() + "/T" + (this.aNT - 2) + "\n");
+			} else {
+				this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+						+ pSimbolo.getIdentificador() + "*T" + (this.aNT - 2) + "\n");
+			}
+			simboloResultante = new Simbolo(Classificacao.FLOAT, "T" + (this.aNT - 1));
+		} else {
+			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Expressao aritmetica com tipos incompativeis.");
+		}
+		return simboloResultante;
 	}
 }
