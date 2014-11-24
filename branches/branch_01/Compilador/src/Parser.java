@@ -309,17 +309,22 @@ public final class Parser {
 	private boolean iteracao(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.WHILE) {
+			this.aCodigoIntermediario.append(this.aNL++ + ":\n");
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE)) {
 				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 				
-				this.expressaoRelacional(pBuffReader);
+				Simbolo exprRel = this.expressaoRelacional(pBuffReader);
 				
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+					this.aCodigoIntermediario.append("IF " + exprRel.getIdentificador() 
+							+ " == FALSE GOTO" + this.aNL++ + "\n");
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					if (this.comando(pBuffReader)) {
+						this.aCodigoIntermediario.append("GOTO " + (this.aNL - 2) + "\n");
+						this.aCodigoIntermediario.append((this.aNL - 1) + ":\n");
 						return true;
 					} else {
 						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
@@ -337,6 +342,7 @@ public final class Parser {
 						"Iteracao invalida. " + "Inicio de parenteses esperado.");
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DO) {
+			this.aCodigoIntermediario.append(this.aNL++ + ":\n");
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if (this.comando(pBuffReader)) {
@@ -346,12 +352,14 @@ public final class Parser {
 					if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE) {
 						this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
-						this.expressaoRelacional(pBuffReader);
+						Simbolo exprRel = this.expressaoRelacional(pBuffReader);
 						
 						if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
 							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 							if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
+								this.aCodigoIntermediario.append("IF " + exprRel.getIdentificador() 
+										+ " == TRUE GOTO" + (this.aNL - 1) + "\n");
 								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 								return true;
