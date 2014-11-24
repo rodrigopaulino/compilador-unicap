@@ -4,7 +4,7 @@
  * mostrada ou revelada sem permissão escrita do mesmo.
  */
 /**
- * Tipo básico de um compilador.
+ * 
  */
 public class Token {
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
