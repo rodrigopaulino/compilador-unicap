@@ -16,7 +16,7 @@ int main() {
 	
         w = w + 1;
 	
-    }while  (y<10);
+    }while  (c<10);
 
 
     y = x;
