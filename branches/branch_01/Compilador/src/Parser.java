@@ -148,6 +148,13 @@ public final class Parser {
 				}
 			}
 			
+			if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.CHAVE_FECHA) {
+				this.retirarBloco();
+				this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
+
+				return true;
+			}
+			
 			throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
 					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 					"Bloco invalido.");
@@ -183,12 +190,13 @@ public final class Parser {
 				Simbolo exprRel = this.expressaoRelacional(pBuffReader);
 
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+					int nTemporario = this.aNL++;
 					this.aCodigoIntermediario.append("IF " + exprRel.getIdentificador() 
-							+ " == FALSE GOTO L" + this.aNL++ + "\n");
+							+ " == FALSE GOTO L" + nTemporario + "\n");
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					if (this.comando(pBuffReader)) {
-						this.aCodigoIntermediario.append("L" + (this.aNL - 1) + ":\n");
+						this.aCodigoIntermediario.append("L" + nTemporario + ":\n");
 						if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ELSE) {
 							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
@@ -260,7 +268,8 @@ public final class Parser {
 	private boolean iteracao(BufferedReader pBuffReader)
 		throws IOException, ExcecaoCompilador, ExcecaoSemantico {
 		if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.WHILE) {
-			this.aCodigoIntermediario.append("L" + this.aNL++ + ":\n");
+			int nTemporarioInicial = this.aNL++;
+			this.aCodigoIntermediario.append("L" + nTemporarioInicial + ":\n");
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_ABRE)) {
@@ -269,13 +278,14 @@ public final class Parser {
 				Simbolo exprRel = this.expressaoRelacional(pBuffReader);
 				
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
+					int nTemporarioFinal = this.aNL++;
 					this.aCodigoIntermediario.append("IF " + exprRel.getIdentificador() 
-							+ " == FALSE GOTO L" + this.aNL++ + "\n");
+							+ " == FALSE GOTO L" + nTemporarioFinal + "\n");
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					if (this.comando(pBuffReader)) {
-						this.aCodigoIntermediario.append("GOTO L" + (this.aNL - 2) + "\n");
-						this.aCodigoIntermediario.append("L" + (this.aNL - 1) + ":\n");
+						this.aCodigoIntermediario.append("GOTO L" + nTemporarioInicial + "\n");
+						this.aCodigoIntermediario.append("L" + nTemporarioFinal + ":\n");
 						return true;
 					} else {
 						throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
@@ -293,7 +303,8 @@ public final class Parser {
 						"Iteracao invalida. " + "Inicio de parenteses esperado.");
 			}
 		} else if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.DO) {
-			this.aCodigoIntermediario.append("L" + this.aNL++ + ":\n");
+			int nTemporario = this.aNL++;
+			this.aCodigoIntermediario.append("L" + nTemporario + ":\n");
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if (this.comando(pBuffReader)) {
@@ -310,7 +321,7 @@ public final class Parser {
 
 							if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
 								this.aCodigoIntermediario.append("IF " + exprRel.getIdentificador() 
-										+ " == TRUE GOTO L" + (this.aNL - 1) + "\n");
+										+ " == TRUE GOTO L" + nTemporario + "\n");
 								this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 								return true;
