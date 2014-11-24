@@ -406,7 +406,7 @@ public final class Parser {
 						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
 						"Variavel usada nao foi declarada.");
 			}
-			tipo1 = new Simbolo(variavelDeclarada.getTipo().getCodigo(), null);
+			tipo1 = variavelDeclarada;
 			this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 			if ((this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ATRIBUICAO)) {
@@ -422,15 +422,7 @@ public final class Parser {
 				}
 				
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PONTO_VIRGULA) {
-					if ((tipo1.getTipo().getCodigo() != tipo2.getTipo().getCodigo()) &&
-							!((tipo1.getTipo().getCodigo() == Classificacao.INT 
-									&& tipo2.getTipo().getCodigo() == Classificacao.FLOAT) ||
-									(tipo1.getTipo().getCodigo() == Classificacao.FLOAT 
-									&& tipo2.getTipo().getCodigo() == Classificacao.INT))) {
-						throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-								Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-								"Atribuicao de tipos incompativeis.");
-					}
+					gerarCodigoAtribuicao(tipo1, tipo2);
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					return true;
@@ -776,6 +768,23 @@ public final class Parser {
 	 * MÉTODOS DE GERAÇÃO DE CÓDIGO
 	 * 
 	 */
+	
+	public void gerarCodigoAtribuicao(Simbolo pSimboloEsq, Simbolo pSimboloDir) throws ExcecaoSemantico {
+		if (pSimboloEsq.getTipo().getCodigo() == pSimboloDir.getTipo().getCodigo()) {
+			this.aCodigoIntermediario.append(pSimboloEsq.getIdentificador() + " = " 
+					+ pSimboloDir.getIdentificador() + "\n");
+		} else if (pSimboloEsq.getTipo().getCodigo() == Classificacao.FLOAT 
+				&& pSimboloDir.getTipo().getCodigo() == Classificacao.INT) {
+			this.aCodigoIntermediario.append("T" + this.aNT++ + " = " 
+					+ "i2f(" + pSimboloDir.getIdentificador() + ")\n");
+			this.aCodigoIntermediario.append(pSimboloEsq.getIdentificador() + " = " + "T" 
+					+ (this.aNT - 1) + "\n");
+		} else {
+			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+					Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+					"Atribuicao de tipos incompativeis.");
+		}
+	}
 	
 	public Simbolo gerarCodigoExpressaorRelacional(Token pOperador, Simbolo pSimboloEsq
 			, Simbolo pSimboloDir) throws ExcecaoSemantico {
