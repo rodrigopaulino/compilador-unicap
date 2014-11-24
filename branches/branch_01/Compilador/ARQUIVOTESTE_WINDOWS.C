@@ -1,11 +1,11 @@
 int main() {
 	int x,y,z;
 	float h;
-	int c;
+	float c;
 	float w,k,a,p;
     
     k = x;
-    w = 5/x+y*8+5* 7;
+    w = 5/x/y/c+y*8+5* 7;
     /** /** /*
        teste &% 
     ***/
@@ -13,7 +13,7 @@ int main() {
 
      
     do{
-	
+	c=c;
         w = w + 1;
 	
     }while  (c<10);
