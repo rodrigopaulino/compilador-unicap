@@ -190,17 +190,20 @@ public final class Parser {
 				Simbolo exprRel = this.expressaoRelacional(pBuffReader);
 
 				if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.PARENTESES_FECHA) {
-					int nTemporario = this.aNL++;
+					int nTemporarioInicial = this.aNL++;
 					this.aCodigoIntermediario.append("IF " + exprRel.getIdentificador() 
-							+ " == FALSE GOTO L" + nTemporario + "\n");
+							+ " == FALSE GOTO L" + nTemporarioInicial + "\n");
 					this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 					if (this.comando(pBuffReader)) {
-						this.aCodigoIntermediario.append("L" + nTemporario + ":\n");
+						int nTemporarioFinal = this.aNL++;
+						this.aCodigoIntermediario.append("GOTO L" + nTemporarioFinal + ":\n");
+						this.aCodigoIntermediario.append("L" + nTemporarioInicial + ":\n");
 						if (this.aLookAhead.getClassificacao().getCodigo() == Classificacao.ELSE) {
 							this.aLookAhead = Scanner.getInstancia().executar(pBuffReader);
 
 							if (this.comando(pBuffReader)) {
+								this.aCodigoIntermediario.append("L" + nTemporarioFinal + ":\n");
 								return true;
 							} else {
 								throw new ExcecaoCompilador(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
@@ -208,6 +211,7 @@ public final class Parser {
 										"Comando invalido dentro do else.");
 							}
 						} else {
+							this.aCodigoIntermediario.append("L" + nTemporarioFinal + ":\n");
 							return true;
 						}
 					} else {
@@ -744,14 +748,17 @@ public final class Parser {
 	 * @throws ExcecaoSemantico Exceção lançada quando a variável já foi declarada no mesmo escopo.
 	 */
 	private void incluirVariavel(Simbolo pSimbolo) throws ExcecaoSemantico {
+		Simbolo variavelDeclarada = null;
 		try {
-			if (this.variavelDeclarada(pSimbolo.getIdentificador(), true) != null) {
-				throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
-						Scanner.getInstancia().getUltimoTokenLido().getLexema(),
-						"Variavel ja declarada no mesmo escopo.");
-			}
+			variavelDeclarada = this.variavelDeclarada(pSimbolo.getIdentificador(), true);
 		} catch (ExcecaoSemantico e) {
 			this.aTabelaSimbolos.push(pSimbolo);
+		}
+		
+		if (variavelDeclarada != null) {
+			throw new ExcecaoSemantico(Scanner.getInstancia().getLinha(), Scanner.getInstancia().getColuna(),
+				Scanner.getInstancia().getUltimoTokenLido().getLexema(),
+				"Variavel ja declarada no mesmo escopo.");
 		}
 	}
 
