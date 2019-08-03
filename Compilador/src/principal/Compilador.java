@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import excecoes.ExcecaoCompilador;
+import excecoes.ExcecaoSemantico;
 import util.Parser;
 
 /**
@@ -35,7 +36,9 @@ public class Compilador {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ExcecaoCompilador e) {
-			e.printStackTrace();
+			System.out.print(e.getMessage());
+		} catch (ExcecaoSemantico e) {
+			System.out.print(e.getMessage());
 		}
 	}
 }

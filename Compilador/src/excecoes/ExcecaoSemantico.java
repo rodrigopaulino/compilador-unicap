@@ -8,11 +8,11 @@ package excecoes;
 /**
  * 
  */
-public class ExcecaoCompilador extends Exception {
+public class ExcecaoSemantico extends Exception {
 	//~ Atributos/inicializadores estaticos ----------------------------------------------------------------------------------------
-
-	private static final long serialVersionUID = 2392227523068350450L;
-
+	
+	private static final long serialVersionUID = -3579697654163187538L;
+	
 	//~ Atributos de instancia -----------------------------------------------------------------------------------------------------
 
 	private String aMessagem;
@@ -20,21 +20,17 @@ public class ExcecaoCompilador extends Exception {
 	//~ Construtores ---------------------------------------------------------------------------------------------------------------
 
 /**
-         * Cria um novo objeto ExcecaoCompilador.
+         * Cria um novo objeto ExcecaoSemantico.
          *
          * @param pLinha  
          * @param pColuna  
          * @param pUltimoToken  
          * @param pErro  
          */
-	public ExcecaoCompilador(int pLinha, int pColuna, String pUltimoToken, String pErro) {
+	public ExcecaoSemantico(int pLinha, int pColuna, String pUltimoToken, String pErro) {
 		super();
 		this.aMessagem = "ERRO na linha " + pLinha + ", coluna " + pColuna + ", ultimo token lido \"" + pUltimoToken + "\":" +
 			pErro;
-	}
-
-	public ExcecaoCompilador() {
-		super();
 	}
 
 	//~ Metodos --------------------------------------------------------------------------------------------------------------------
